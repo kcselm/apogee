@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MAX_SPEED, PREVIEW_STEPS } from "../src/constants";
-import { simulateLaunch } from "../src/game";
+import { LAUNCHES_PER_DAY, MAX_SPEED, PREVIEW_STEPS } from "../src/constants";
+import { createDailyGame, createGame, isGameOver, simulateLaunch } from "../src/game";
 import type { GameState, Planet, StarSystem } from "../src/types";
 
 function makePlanet(x: number, y: number, radius = 60): Planet {
@@ -52,5 +52,32 @@ describe("simulateLaunch", () => {
     const a = simulateLaunch(makeState([makePlanet(800, 500)]), { dx: 173.5, dy: -42.25 });
     const b = simulateLaunch(makeState([makePlanet(800, 500)]), { dx: 173.5, dy: -42.25 });
     expect(a).toEqual(b);
+  });
+});
+
+describe("createGame / createDailyGame", () => {
+  it("creates a fresh game from a seed", () => {
+    const game = createGame(7);
+    expect(game.probes).toEqual([]);
+    expect(game.launchesUsed).toBe(0);
+    expect(game.system.planets.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("same date string always produces the same system", () => {
+    expect(createDailyGame("2026-06-11")).toEqual(createDailyGame("2026-06-11"));
+  });
+
+  it("different dates produce different systems", () => {
+    expect(createDailyGame("2026-06-11").system).not.toEqual(
+      createDailyGame("2026-06-12").system,
+    );
+  });
+});
+
+describe("isGameOver", () => {
+  it("is false before and true after LAUNCHES_PER_DAY launches", () => {
+    const game = createGame(7);
+    expect(isGameOver(game)).toBe(false);
+    expect(isGameOver({ ...game, launchesUsed: LAUNCHES_PER_DAY })).toBe(true);
   });
 });

@@ -1,4 +1,6 @@
-import { MAX_SPEED, MAX_STEPS, POWER_SCALE } from "./constants";
+import { LAUNCHES_PER_DAY, MAX_SPEED, MAX_STEPS, POWER_SCALE } from "./constants";
+import { generateSystem } from "./generation";
+import { hashString } from "./rng";
 import { stepProbes } from "./physics";
 import type { GameState, LaunchInput, Probe, ProbeFrame } from "./types";
 
@@ -40,4 +42,16 @@ export function simulateLaunch(
     state: { system: state.system, probes, launchesUsed: state.launchesUsed + 1 },
     trace,
   };
+}
+
+export function createGame(seed: number): GameState {
+  return { system: generateSystem(seed), probes: [], launchesUsed: 0 };
+}
+
+export function createDailyGame(dateString: string): GameState {
+  return createGame(hashString(dateString));
+}
+
+export function isGameOver(state: GameState): boolean {
+  return state.launchesUsed >= LAUNCHES_PER_DAY;
 }
