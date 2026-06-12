@@ -9,7 +9,7 @@ import { scoreGame } from "../src/scoring";
  * (delete the snapshot and re-commit it alongside the change).
  */
 const INPUTS = [
-  { dx: 180, dy: -40 },
+  { dx: -40, dy: 60 }, // lands in a scoring ring (score 5) — locks the scoring pipeline end-to-end
   { dx: 120, dy: 60 },
   { dx: 200, dy: 0 },
   { dx: 90, dy: -110 },
