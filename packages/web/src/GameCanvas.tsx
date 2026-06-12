@@ -5,18 +5,20 @@ import {
   simulateLaunch,
   type GameState,
   type LaunchInput,
+  type ProbeFrame,
 } from "@apogee/engine";
 import { useEffect, useRef } from "react";
 import { drawFrame } from "./render";
 
 interface Props {
   game: GameState;
-  /** When true (game over / animating), input is ignored. */
   disabled: boolean;
+  /** Trace to play back, or null when idle. */
+  anim: ProbeFrame[][] | null;
   onLaunch: (input: LaunchInput) => void;
+  onAnimDone: () => void;
 }
 
-/** Convert a pointer event to world coordinates (canvas is CSS-scaled). */
 function toWorld(canvas: HTMLCanvasElement, e: PointerEvent): { x: number; y: number } {
   const rect = canvas.getBoundingClientRect();
   return {
@@ -25,11 +27,37 @@ function toWorld(canvas: HTMLCanvasElement, e: PointerEvent): { x: number; y: nu
   };
 }
 
-export function GameCanvas({ game, disabled, onLaunch }: Props) {
+export function GameCanvas({ game, disabled, anim, onLaunch, onAnimDone }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dragRef = useRef<{ dx: number; dy: number } | null>(null);
 
+  // Animation playback: one sim step per display frame (60Hz ≈ real time).
   useEffect(() => {
+    if (!anim) return;
+    const ctx = canvasRef.current?.getContext("2d");
+    if (!ctx) {
+      onAnimDone();
+      return;
+    }
+    let frame = 0;
+    let raf = 0;
+    const tick = () => {
+      const probeFrames = anim[Math.min(frame, anim.length - 1)] ?? null;
+      drawFrame(ctx, { game, probeFrames, previewPath: null, drag: null });
+      frame++;
+      if (frame < anim.length) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        onAnimDone();
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [anim, game, onAnimDone]);
+
+  // Idle rendering + aiming input.
+  useEffect(() => {
+    if (anim) return; // animation effect owns the canvas right now
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
@@ -41,9 +69,9 @@ export function GameCanvas({ game, disabled, onLaunch }: Props) {
         const { trace } = simulateLaunch(game, drag, PREVIEW_STEPS);
         const newProbeIndex = game.probes.length;
         previewPath = trace
-          .map((frame) => frame[newProbeIndex])
-          .filter((f) => f !== undefined && f.state === "flying")
-          .map((f) => ({ x: f!.x, y: f!.y }));
+          .map((f) => f[newProbeIndex])
+          .filter((f): f is ProbeFrame => f !== undefined && f.state === "flying")
+          .map((f) => ({ x: f.x, y: f.y }));
       }
       drawFrame(ctx, { game, probeFrames: null, previewPath, drag });
     };
@@ -57,7 +85,6 @@ export function GameCanvas({ game, disabled, onLaunch }: Props) {
     const onMove = (e: PointerEvent) => {
       if (!dragRef.current) return;
       const w = toWorld(canvas, e);
-      // Slingshot: pull back from the pad, launch the opposite way.
       dragRef.current = {
         dx: game.system.launchPos.x - w.x,
         dy: game.system.launchPos.y - w.y,
@@ -70,17 +97,24 @@ export function GameCanvas({ game, disabled, onLaunch }: Props) {
       redraw();
       if (drag && (drag.dx !== 0 || drag.dy !== 0)) onLaunch(drag);
     };
+    const onCancel = () => {
+      dragRef.current = null;
+      redraw();
+    };
 
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerup", onUp);
+    canvas.addEventListener("pointercancel", onCancel);
     redraw();
     return () => {
+      dragRef.current = null;
       canvas.removeEventListener("pointerdown", onDown);
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);
+      canvas.removeEventListener("pointercancel", onCancel);
     };
-  }, [game, disabled, onLaunch]);
+  }, [game, disabled, anim, onLaunch]);
 
   return <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} />;
 }
