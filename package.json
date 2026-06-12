@@ -1,0 +1,9 @@
+{
+  "name": "apogee",
+  "private": true,
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "dev": "pnpm --filter @apogee/web dev"
+  }
+}
