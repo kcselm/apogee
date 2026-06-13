@@ -3,3 +3,4 @@ export { LAUNCH_BONUS } from "./constants";
 export { createLevel, simulateCampaignLaunch } from "./simulate";
 export { evaluateObjectives, isLevelOver } from "./objectives";
 export { precisionPoints, starRating } from "./scoring";
+export { LEVELS } from "./levels";
