@@ -8,3 +8,22 @@ canvas { width: 100%; max-width: 1100px; border-radius: 8px; touch-action: none;
 .overlay { text-align: center; padding: 12px; }
 .overlay .total { font-size: 2.2rem; font-weight: 700; }
 .pips { letter-spacing: 0.3em; }
+.back { background: none; border: none; color: #80cbc4; cursor: pointer; font-size: 0.9rem; }
+.home { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 18vh; }
+.home h1 { font-size: 2.4rem; letter-spacing: 0.3em; }
+.home .tagline { opacity: 0.6; margin-bottom: 8px; }
+.home button, .actions button, .level-tile {
+  font: inherit; cursor: pointer; border-radius: 8px;
+  border: 1px solid #52628a; background: #1a2238; color: #e8eaf6; padding: 10px 18px;
+}
+.home button:hover, .actions button:hover, .level-tile:not(.locked):hover { border-color: #80cbc4; }
+.actions { display: flex; gap: 12px; justify-content: center; margin-top: 12px; }
+.level-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px; max-width: 1100px; width: 100%;
+}
+.level-tile { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-height: 84px; }
+.level-tile .num { font-size: 1.4rem; font-weight: 700; }
+.level-tile .name { opacity: 0.8; font-size: 0.85rem; }
+.level-tile .stars { letter-spacing: 0.15em; color: #ffd54f; }
+.level-tile.locked { opacity: 0.5; cursor: not-allowed; }
