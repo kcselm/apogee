@@ -1,15 +1,22 @@
 import { DT, GRAVITY, PROBE_RADIUS, VOID_MARGIN } from "./constants";
-import type { Planet, Probe, StarSystem } from "./types";
+import type { Probe, StarSystem, Vec2 } from "./types";
+
+/** The minimal shape physics needs from a gravitating, collidable body. */
+export interface GravityBody {
+  pos: Vec2;
+  radius: number;
+  mass: number;
+}
 
 /** Net gravitational acceleration at a point. Only + - * / sqrt — determinism. */
 export function gravityAt(
-  planets: Planet[],
+  bodies: readonly GravityBody[],
   x: number,
   y: number,
 ): { ax: number; ay: number } {
   let ax = 0;
   let ay = 0;
-  for (const p of planets) {
+  for (const p of bodies) {
     const dx = p.pos.x - x;
     const dy = p.pos.y - y;
     const d2 = dx * dx + dy * dy;
@@ -21,41 +28,38 @@ export function gravityAt(
   return { ax, ay };
 }
 
-/**
- * Advance all probes one fixed timestep: integrate, land, collide, void-check.
- * Mutates the probes array in place.
- */
-export function stepProbes(system: StarSystem, probes: Probe[]): void {
-  // 1. Integrate flying probes (semi-implicit Euler).
-  for (const probe of probes) {
-    if (probe.state !== "flying") continue;
-    const { ax, ay } = gravityAt(system.planets, probe.pos.x, probe.pos.y);
-    probe.vel.x += ax * DT;
-    probe.vel.y += ay * DT;
-    probe.pos.x += probe.vel.x * DT;
-    probe.pos.y += probe.vel.y * DT;
-  }
+/** Advance one flying probe a single fixed step (semi-implicit Euler). */
+export function integrate(bodies: readonly GravityBody[], probe: Probe): void {
+  const { ax, ay } = gravityAt(bodies, probe.pos.x, probe.pos.y);
+  probe.vel.x += ax * DT;
+  probe.vel.y += ay * DT;
+  probe.pos.x += probe.vel.x * DT;
+  probe.pos.y += probe.vel.y * DT;
+}
 
-  // 2. Planet landings: snap to surface, zero velocity, stick.
-  for (const probe of probes) {
-    if (probe.state !== "flying") continue;
-    for (const planet of system.planets) {
-      const dx = probe.pos.x - planet.pos.x;
-      const dy = probe.pos.y - planet.pos.y;
-      const d = Math.sqrt(dx * dx + dy * dy);
-      if (d <= planet.radius + PROBE_RADIUS) {
-        const r = planet.radius + PROBE_RADIUS;
-        probe.pos.x = planet.pos.x + (dx / d) * r;
-        probe.pos.y = planet.pos.y + (dy / d) * r;
-        probe.vel.x = 0;
-        probe.vel.y = 0;
-        probe.state = "landed";
-        break;
-      }
-    }
-  }
+/** True when a probe overlaps a body's surface. */
+export function contacts(body: GravityBody, probe: Probe): boolean {
+  const dx = probe.pos.x - body.pos.x;
+  const dy = probe.pos.y - body.pos.y;
+  const d = Math.sqrt(dx * dx + dy * dy);
+  return d <= body.radius + PROBE_RADIUS;
+}
 
-  // 3. Probe-probe collisions: equal-mass elastic, knocked probes fly again.
+/** Snap a probe to a body's surface, zero its velocity, mark it landed. */
+export function landOn(body: GravityBody, probe: Probe): void {
+  const dx = probe.pos.x - body.pos.x;
+  const dy = probe.pos.y - body.pos.y;
+  const d = Math.sqrt(dx * dx + dy * dy);
+  const r = body.radius + PROBE_RADIUS;
+  probe.pos.x = body.pos.x + (dx / d) * r;
+  probe.pos.y = body.pos.y + (dy / d) * r;
+  probe.vel.x = 0;
+  probe.vel.y = 0;
+  probe.state = "landed";
+}
+
+/** Equal-mass elastic probe-probe collisions; knocked probes fly again. */
+export function resolveCollisions(probes: Probe[]): void {
   for (let i = 0; i < probes.length; i++) {
     for (let j = i + 1; j < probes.length; j++) {
       const a = probes[i]!;
@@ -70,13 +74,11 @@ export function stepProbes(system: StarSystem, probes: Probe[]): void {
       const d = Math.sqrt(d2);
       const nx = dx / d;
       const ny = dy / d;
-      // Separate the overlap evenly.
       const half = (minD - d) / 2;
       a.pos.x -= nx * half;
       a.pos.y -= ny * half;
       b.pos.x += nx * half;
       b.pos.y += ny * half;
-      // Equal-mass elastic collision: swap velocity components along the normal.
       const avn = a.vel.x * nx + a.vel.y * ny;
       const bvn = b.vel.x * nx + b.vel.y * ny;
       a.vel.x += (bvn - avn) * nx;
@@ -87,18 +89,43 @@ export function stepProbes(system: StarSystem, probes: Probe[]): void {
       b.state = "flying";
     }
   }
+}
 
-  // 4. Void check.
+/** Mark a flying probe lost if it leaves the bounds + margin. */
+export function voidCheck(
+  bounds: { width: number; height: number },
+  probe: Probe,
+): void {
+  if (probe.state !== "flying") return;
+  if (
+    probe.pos.x < -VOID_MARGIN ||
+    probe.pos.x > bounds.width + VOID_MARGIN ||
+    probe.pos.y < -VOID_MARGIN ||
+    probe.pos.y > bounds.height + VOID_MARGIN
+  ) {
+    probe.state = "lost";
+  }
+}
+
+/**
+ * Advance all probes one fixed timestep for the DAILY game. Behavior is
+ * identical to the previous inline implementation — now composed from the
+ * primitives above so the campaign step can reuse them. Mutates in place.
+ */
+export function stepProbes(system: StarSystem, probes: Probe[]): void {
   for (const probe of probes) {
     if (probe.state !== "flying") continue;
-    const { width, height } = system.bounds;
-    if (
-      probe.pos.x < -VOID_MARGIN ||
-      probe.pos.x > width + VOID_MARGIN ||
-      probe.pos.y < -VOID_MARGIN ||
-      probe.pos.y > height + VOID_MARGIN
-    ) {
-      probe.state = "lost";
+    integrate(system.planets, probe);
+  }
+  for (const probe of probes) {
+    if (probe.state !== "flying") continue;
+    for (const planet of system.planets) {
+      if (contacts(planet, probe)) {
+        landOn(planet, probe);
+        break;
+      }
     }
   }
+  resolveCollisions(probes);
+  for (const probe of probes) voidCheck(system.bounds, probe);
 }
