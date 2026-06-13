@@ -1,75 +1,43 @@
-import {
-  LAUNCHES_PER_DAY,
-  createDailyGame,
-  isGameOver,
-  scoreGame,
-  simulateLaunch,
-  type GameState,
-  type LaunchInput,
-  type ProbeFrame,
-} from "@apogee/engine";
-import { useCallback, useState } from "react";
-import { todayString } from "./daily";
-import { loadBest, recordScore } from "./storage";
-import { GameCanvas } from "./GameCanvas";
+import { useState } from "react";
+import { DailyGame } from "./DailyGame";
+import { CampaignMap } from "./campaign/CampaignMap";
+import { CampaignLevel } from "./campaign/CampaignLevel";
 
-interface PendingAnim {
-  trace: ProbeFrame[][];
-  next: GameState;
-}
+type View =
+  | { name: "home" }
+  | { name: "daily" }
+  | { name: "map" }
+  | { name: "level"; index: number };
 
 export function App() {
-  const [day] = useState(todayString);
-  const [game, setGame] = useState(() => createDailyGame(day));
-  const [anim, setAnim] = useState<PendingAnim | null>(null);
-  const [best, setBest] = useState<number | null>(() => loadBest(localStorage, day));
+  const [view, setView] = useState<View>({ name: "home" });
 
-  const handleLaunch = useCallback(
-    (input: LaunchInput) => {
-      const { state, trace } = simulateLaunch(game, input);
-      setAnim({ trace, next: state });
-    },
-    [game],
-  );
-
-  const handleAnimDone = useCallback(() => {
-    if (!anim) return;
-    setGame(anim.next);
-    setAnim(null);
-    if (isGameOver(anim.next)) {
-      setBest(recordScore(localStorage, day, scoreGame(anim.next).total));
-    }
-  }, [anim, day]);
-
-  const score = scoreGame(game);
-  const over = isGameOver(game);
-
-  return (
-    <>
-      <div className="hud">
-        <h1>APOGEE</h1>
-        <span className="stat">{day}</span>
-        <span className="stat pips">
-          {"●".repeat(LAUNCHES_PER_DAY - game.launchesUsed)}
-          {"○".repeat(game.launchesUsed)}
-        </span>
-        <span className="stat">score {score.total}</span>
-      </div>
-      <GameCanvas
-        game={game}
-        disabled={over || anim !== null}
-        anim={anim?.trace ?? null}
-        onLaunch={handleLaunch}
-        onAnimDone={handleAnimDone}
+  if (view.name === "daily") {
+    return <DailyGame onExit={() => setView({ name: "home" })} />;
+  }
+  if (view.name === "map") {
+    return (
+      <CampaignMap
+        onExit={() => setView({ name: "home" })}
+        onPlay={(index) => setView({ name: "level", index })}
       />
-      {over && anim === null && (
-        <div className="overlay">
-          <div className="total">{score.total} pts</div>
-          <div className="pips">{score.perProbe.join(" · ")}</div>
-          {best !== null && <div className="stat">best today: {best}</div>}
-          <div className="stat">come back tomorrow for a new system</div>
-        </div>
-      )}
-    </>
+    );
+  }
+  if (view.name === "level") {
+    return (
+      <CampaignLevel
+        index={view.index}
+        onExit={() => setView({ name: "map" })}
+        onPlay={(index) => setView({ name: "level", index })}
+      />
+    );
+  }
+  return (
+    <div className="home">
+      <h1>APOGEE</h1>
+      <p className="tagline">gravity is the only rule</p>
+      <button onClick={() => setView({ name: "daily" })}>Daily Challenge</button>
+      <button onClick={() => setView({ name: "map" })}>Campaign</button>
+    </div>
   );
 }
