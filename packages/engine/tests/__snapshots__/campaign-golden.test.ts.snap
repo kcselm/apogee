@@ -1,0 +1,37 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`campaign golden replay > a fixed level + inputs matches the locked snapshot 1`] = `
+{
+  "bestPrecision": 1,
+  "cleared": true,
+  "goalReached": true,
+  "keysCollected": [
+    true,
+  ],
+  "probes": [
+    {
+      "pos": {
+        "x": 1050.2944021999417,
+        "y": 1202.2918673507431,
+      },
+      "state": "lost",
+      "vel": {
+        "x": -8.832809624426114,
+        "y": 300.4999119689227,
+      },
+    },
+    {
+      "pos": {
+        "x": 1802.4190845463645,
+        "y": 933.9814820251243,
+      },
+      "state": "lost",
+      "vel": {
+        "x": 168.20204355824603,
+        "y": 197.195498688407,
+      },
+    },
+  ],
+  "stars": 2,
+}
+`;
