@@ -177,6 +177,23 @@ function drawBlocker(
   ctx.setLineDash([]);
 }
 
+function glowStroke(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  blur: number,
+  lineWidth: number,
+  path: () => void,
+): void {
+  ctx.save();
+  ctx.shadowColor = color;
+  ctx.shadowBlur = blur;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  path();
+  ctx.stroke();
+  ctx.restore();
+}
+
 export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void {
   const { game } = view;
   ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -184,14 +201,14 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
   // Transparent over the shared cosmos backdrop; only near-field dust here.
   drawDust(ctx, view.drag, view.animate);
 
-  // Zone rings (under planets' rims, over space)
+  // Zone rings — glowing, semantic 5/3/1 colors.
   for (const zone of game.system.zones) {
     for (let i = RINGS.length - 1; i >= 0; i--) {
-      ctx.strokeStyle = RING_COLORS[i] ?? "#fff";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(zone.center.x, zone.center.y, RINGS[i]!.maxDist, 0, Math.PI * 2);
-      ctx.stroke();
+      const color = RING_COLORS[i] ?? "#fff";
+      glowStroke(ctx, color, 8, 2, () => {
+        ctx.beginPath();
+        ctx.arc(zone.center.x, zone.center.y, RINGS[i]!.maxDist, 0, Math.PI * 2);
+      });
     }
   }
 
@@ -272,23 +289,31 @@ export function drawCampaignFrame(
     }
   }
 
-  // Targets: open marks that fill in when hit.
+  // Targets: open marks that fill + glow when hit.
   level.targets.forEach((t, i) => {
     const hit = state.targetsHit[i] ?? false;
-    ctx.strokeStyle = hit ? "#a5d6a7" : "#ffb74d";
+    const color = hit ? COLORS.targetHit : COLORS.target;
     ctx.fillStyle = hit ? "rgba(165, 214, 167, 0.5)" : "rgba(255, 183, 77, 0.12)";
-    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(t.pos.x, t.pos.y, t.radius, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
+    glowStroke(ctx, color, hit ? 12 : 4, 3, () => {
+      ctx.beginPath();
+      ctx.arc(t.pos.x, t.pos.y, t.radius, 0, Math.PI * 2);
+    });
   });
 
   // Keys: glinting diamonds, dimmed once collected.
   level.keys.forEach((k, i) => {
     const got = state.keysCollected[i] ?? false;
+    const glint = view.animate && !got ? 0.6 + 0.4 * Math.sin(view.time * 0.004 + i) : 1;
     ctx.globalAlpha = got ? 0.25 : 1;
-    ctx.fillStyle = "#ffd54f";
+    ctx.save();
+    if (!got) {
+      ctx.shadowColor = COLORS.key;
+      ctx.shadowBlur = 10 * glint;
+    }
+    ctx.fillStyle = COLORS.key;
     ctx.beginPath();
     ctx.moveTo(k.pos.x, k.pos.y - k.radius);
     ctx.lineTo(k.pos.x + k.radius, k.pos.y);
@@ -296,21 +321,42 @@ export function drawCampaignFrame(
     ctx.lineTo(k.pos.x - k.radius, k.pos.y);
     ctx.closePath();
     ctx.fill();
+    ctx.restore();
     ctx.globalAlpha = 1;
   });
 
-  // Goal: a ring/portal — dashed + locked color until keys are collected.
+  // Goal portal: dim + dashed when locked; glowing + slowly rotating when open.
   if (level.goal) {
+    const goal = level.goal;
     const unlocked = state.keysCollected.every(Boolean);
-    ctx.strokeStyle = unlocked ? "#80cbc4" : "#5c6b8a";
-    ctx.lineWidth = 4;
-    if (!unlocked) ctx.setLineDash([6, 8]);
-    ctx.beginPath();
-    ctx.arc(level.goal.pos.x, level.goal.pos.y, level.goal.radius, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.setLineDash([]);
     ctx.fillStyle = unlocked ? "rgba(128, 203, 196, 0.18)" : "rgba(92, 107, 138, 0.12)";
+    ctx.beginPath();
+    ctx.arc(goal.pos.x, goal.pos.y, goal.radius, 0, Math.PI * 2);
     ctx.fill();
+    if (unlocked) {
+      const rot = view.animate ? view.time * 0.001 : 0;
+      ctx.save();
+      ctx.translate(goal.pos.x, goal.pos.y);
+      ctx.rotate(rot);
+      ctx.shadowColor = COLORS.goalOpen;
+      ctx.shadowBlur = 14;
+      ctx.strokeStyle = COLORS.goalOpen;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([10, 8]);
+      ctx.beginPath();
+      ctx.arc(0, 0, goal.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      ctx.setLineDash([]);
+    } else {
+      ctx.strokeStyle = COLORS.goalLocked;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([6, 8]);
+      ctx.beginPath();
+      ctx.arc(goal.pos.x, goal.pos.y, goal.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
   }
 
   // Launch pad.
