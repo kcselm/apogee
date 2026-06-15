@@ -78,12 +78,14 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
       />
       {over && (
         <div className="overlay">
-          <div className="total">{cleared ? "★".repeat(rating.stars) + "☆".repeat(3 - rating.stars) : "out of launches"}</div>
-          <div className="stat">{cleared ? `cleared — score ${rating.levelScore}` : "objective not met"}</div>
-          <div className="actions">
-            <button onClick={() => onPlay(index)}>Retry</button>
-            {cleared && hasNext && <button onClick={() => onPlay(index + 1)}>Next →</button>}
-            <button onClick={onExit}>Levels</button>
+          <div className="panel">
+            <div className="total">{cleared ? "★".repeat(rating.stars) + "☆".repeat(3 - rating.stars) : "out of launches"}</div>
+            <div className="stat">{cleared ? `cleared — score ${rating.levelScore}` : "objective not met"}</div>
+            <div className="actions">
+              <button onClick={() => onPlay(index)}>Retry</button>
+              {cleared && hasNext && <button onClick={() => onPlay(index + 1)}>Next →</button>}
+              <button onClick={onExit}>Levels</button>
+            </div>
           </div>
         </div>
       )}

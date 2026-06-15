@@ -12,6 +12,7 @@ import { useCallback, useState } from "react";
 import { todayString } from "./daily";
 import { loadBest, recordScore } from "./storage";
 import { GameCanvas } from "./GameCanvas";
+import { CountUp } from "./CountUp";
 
 interface PendingAnim {
   trace: ProbeFrame[][];
@@ -65,10 +66,12 @@ export function DailyGame({ onExit }: { onExit: () => void }) {
       />
       {over && anim === null && (
         <div className="overlay">
-          <div className="total">{score.total} pts</div>
-          <div className="pips">{score.perProbe.join(" · ")}</div>
-          {best !== null && <div className="stat">best today: {best}</div>}
-          <div className="stat">come back tomorrow for a new system</div>
+          <div className="panel">
+            <div className="total"><CountUp value={score.total} /> pts</div>
+            <div className="pips">{score.perProbe.join(" · ")}</div>
+            {best !== null && <div className="stat">best today: {best}</div>}
+            <div className="stat">come back tomorrow for a new system</div>
+          </div>
         </div>
       )}
     </>
