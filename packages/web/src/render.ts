@@ -93,20 +93,30 @@ function drawPlanet(
   ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
   ctx.fill();
 
-  // Gas-giant banding (clipped to the disc).
+  // Gas-giant banding: soft, irregular-width latitude belts that bow with the
+  // sphere. Low-alpha warm tints over the body gradient — reads as atmosphere,
+  // not stripes. Edges are fractions of the radius (top → bottom), deliberately
+  // uneven so no two belts match.
   if (type === "gasGiant") {
     ctx.save();
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
     ctx.clip();
-    ctx.globalAlpha = 0.12;
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = radius * 0.12;
-    for (let i = -3; i <= 3; i++) {
+    const edges = [-1.05, -0.74, -0.55, -0.34, -0.12, 0.05, 0.27, 0.44, 0.69, 1.05];
+    for (let i = 0; i < edges.length - 1; i++) {
+      const yTop = pos.y + edges[i]! * radius;
+      const yBot = pos.y + edges[i + 1]! * radius;
+      // Bands nearer the equator bow less; nearer the poles bow more, following
+      // the sphere's curvature.
+      const bow = radius * 0.12 * (1 - Math.abs((edges[i]! + edges[i + 1]!) / 2));
+      ctx.fillStyle = i % 2 === 0 ? "rgba(255, 234, 205, 0.10)" : "rgba(96, 58, 30, 0.16)";
       ctx.beginPath();
-      ctx.moveTo(pos.x - radius, pos.y + i * radius * 0.28);
-      ctx.lineTo(pos.x + radius, pos.y + i * radius * 0.28 + radius * 0.1);
-      ctx.stroke();
+      ctx.moveTo(pos.x - radius, yTop);
+      ctx.quadraticCurveTo(pos.x, yTop + bow, pos.x + radius, yTop);
+      ctx.lineTo(pos.x + radius, yBot);
+      ctx.quadraticCurveTo(pos.x, yBot + bow, pos.x - radius, yBot);
+      ctx.closePath();
+      ctx.fill();
     }
     ctx.restore();
   }
