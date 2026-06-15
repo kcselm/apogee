@@ -9,18 +9,34 @@ import {
   type ProbeFrame,
 } from "@apogee/engine";
 import type { Burst } from "./space/effects";
+import { COLORS } from "./space/palette";
 
-/** Fixed decorative starfield (render-only; never touches the sim). */
-const STARS: { x: number; y: number; r: number }[] = (() => {
-  const rng = mulberry32(0xa11ce);
-  return Array.from({ length: 140 }, () => ({
+/** Near-field dust (render-only); parallaxes with the aim drag for depth. */
+const DUST: { x: number; y: number; r: number }[] = (() => {
+  const rng = mulberry32(0xd057);
+  return Array.from({ length: 28 }, () => ({
     x: rng() * WORLD_WIDTH,
     y: rng() * WORLD_HEIGHT,
-    r: 0.5 + rng() * 1.2,
+    r: 0.6 + rng() * 1.4,
   }));
 })();
 
-const RING_COLORS = ["#ffd54f", "#4fc3f7", "#7986cb"]; // 5 / 3 / 1 points
+const RING_COLORS = COLORS.ringPoints;
+
+function drawDust(
+  ctx: CanvasRenderingContext2D,
+  drag: { dx: number; dy: number } | null,
+  animate: boolean,
+): void {
+  const ox = animate && drag ? -drag.dx * 0.012 : 0;
+  const oy = animate && drag ? -drag.dy * 0.012 : 0;
+  ctx.fillStyle = "rgba(200,215,255,0.5)";
+  for (const d of DUST) {
+    ctx.beginPath();
+    ctx.arc(d.x + ox, d.y + oy, d.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
 
 export interface RenderView {
   game: GameState;
@@ -44,15 +60,8 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
   const { game } = view;
   ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Space + stars
-  ctx.fillStyle = "#0b0e1a";
-  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-  ctx.fillStyle = "#9fa8da";
-  for (const s of STARS) {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // Transparent over the shared cosmos backdrop; only near-field dust here.
+  drawDust(ctx, view.drag, view.animate);
 
   // Zone rings (under planets' rims, over space)
   for (const zone of game.system.zones) {
@@ -136,15 +145,8 @@ export function drawCampaignFrame(
   const { level } = state;
   ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
 
-  // Space + stars (shared starfield).
-  ctx.fillStyle = "#0b0e1a";
-  ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-  ctx.fillStyle = "#9fa8da";
-  for (const s of STARS) {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // Transparent over the shared cosmos backdrop; only near-field dust here.
+  drawDust(ctx, view.drag, view.animate);
 
   // Bodies: planets (blue) vs blockers (hostile red with a hazard ring).
   for (const b of level.bodies) {
