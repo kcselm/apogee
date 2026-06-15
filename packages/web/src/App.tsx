@@ -49,7 +49,12 @@ export function App() {
   return (
     <>
       <SpaceBackdrop />
-      {screen()}
+      <div
+        className="screen-fade"
+        key={view.name === "level" ? `level-${view.index}-${playCount}` : view.name}
+      >
+        {screen()}
+      </div>
     </>
   );
 }

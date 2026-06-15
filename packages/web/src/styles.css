@@ -90,3 +90,11 @@ canvas {
 .level-tile .name { color: var(--muted); font-size: 0.85rem; }
 .level-tile .stars { letter-spacing: 0.15em; color: #ffd54f; text-shadow: 0 0 10px rgba(255, 213, 79, 0.4); }
 .level-tile.locked { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.screen-fade {
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  animation: screen-in 0.3s ease both;
+}
+@keyframes screen-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .screen-fade, .overlay { animation: none; }
+}
