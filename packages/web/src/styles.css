@@ -2,6 +2,9 @@
 body { background: #06070f; color: #e8eaf6; font-family: system-ui, sans-serif; }
 .space-backdrop {
   position: fixed; inset: 0; z-index: -1; pointer-events: none; display: block;
+  /* Override the global canvas {} rule so the backdrop fills the viewport. */
+  width: 100vw; height: 100vh; max-width: none; max-height: none;
+  aspect-ratio: auto; border-radius: 0;
 }
 #root { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; min-height: 100vh; }
 canvas {
