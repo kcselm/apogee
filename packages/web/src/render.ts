@@ -276,7 +276,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
 
   // Launch pad
   const lp = game.system.launchPos;
-  ctx.strokeStyle = "#80cbc4";
+  ctx.strokeStyle = COLORS.pad;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(lp.x, lp.y, 14, 0, Math.PI * 2);
@@ -284,7 +284,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
 
   // Aiming: preview path + drag indicator
   if (view.previewPath && view.previewPath.length > 1) {
-    ctx.strokeStyle = "rgba(255, 213, 79, 0.8)";
+    ctx.strokeStyle = COLORS.preview;
     ctx.setLineDash([6, 8]);
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -294,7 +294,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
     ctx.setLineDash([]);
   }
   if (view.drag) {
-    ctx.strokeStyle = "#80cbc4";
+    ctx.strokeStyle = COLORS.pad;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(lp.x, lp.y);
@@ -418,7 +418,7 @@ export function drawCampaignFrame(
 
   // Launch pad.
   const lp = level.launchPos;
-  ctx.strokeStyle = "#80cbc4";
+  ctx.strokeStyle = COLORS.pad;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(lp.x, lp.y, 14, 0, Math.PI * 2);
@@ -426,7 +426,7 @@ export function drawCampaignFrame(
 
   // Aiming preview + drag.
   if (view.previewPath && view.previewPath.length > 1) {
-    ctx.strokeStyle = "rgba(255, 213, 79, 0.8)";
+    ctx.strokeStyle = COLORS.preview;
     ctx.setLineDash([6, 8]);
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -436,7 +436,7 @@ export function drawCampaignFrame(
     ctx.setLineDash([]);
   }
   if (view.drag) {
-    ctx.strokeStyle = "#80cbc4";
+    ctx.strokeStyle = COLORS.pad;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(lp.x, lp.y);

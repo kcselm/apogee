@@ -6,7 +6,7 @@ export const COLORS = {
   pad: "#80cbc4",
   probe: "#ffffff",
   probeLanded: "#a5d6a7",
-  preview: "rgba(255, 213, 79, 0.85)",
+  preview: "rgba(255, 213, 79, 0.8)",
   blockerBody: "#4d2026",
   blockerRim: "#e0564a",
   goalLocked: "#5c6b8a",

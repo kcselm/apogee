@@ -1,7 +1,7 @@
 import { type LaunchInput, type ProbeFrame, PREVIEW_STEPS } from "@apogee/engine";
 import { useEffect, useRef } from "react";
 import { type Burst, pruneBursts } from "./effects";
-import { prefersReducedMotion, watchReducedMotion } from "./motion";
+import { prefersReducedMotion, shouldAnimate, watchReducedMotion } from "./motion";
 import { clearTrail, createTrail, pushTrail } from "./trail";
 
 export interface BoardDrawOpts {
@@ -98,16 +98,17 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     const render = (time: number) => {
       const adapter = adapterRef.current;
       const anim = animRef.current;
-      const t = reduce ? 0 : time;
+      const motion = shouldAnimate(reduce, document.hidden);
+      const t = motion ? time : 0;
       burstsRef.current = pruneBursts(burstsRef.current, time);
       if (anim) {
         const i = Math.min(frameIdxRef.current, anim.length - 1);
         const probeFrames = anim[i] ?? null;
         const pf = probeFrames?.[adapter.probeIndex];
         if (pf) {
-          if (!reduce && pf.state === "flying") pushTrail(trailRef.current, pf.x, pf.y);
+          if (motion && pf.state === "flying") pushTrail(trailRef.current, pf.x, pf.y);
           if (pf.state !== prevStateRef.current && pf.state !== "flying") {
-            if (!reduce) {
+            if (motion) {
               burstsRef.current.push({
                 x: pf.x,
                 y: pf.y,
@@ -122,10 +123,10 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
           probeFrames,
           previewPath: null,
           drag: null,
-          trail: reduce ? null : trailRef.current.points.slice(),
+          trail: motion ? trailRef.current.points.slice() : null,
           bursts: burstsRef.current,
           time: t,
-          animate: !reduce,
+          animate: motion,
         });
         frameIdxRef.current++;
         if (frameIdxRef.current >= anim.length) {
@@ -141,16 +142,17 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
           trail: null,
           bursts: burstsRef.current,
           time: t,
-          animate: !reduce,
+          animate: motion,
         });
       }
     };
 
     const wantLoop = () =>
-      animRef.current !== null ||
-      dragRef.current !== null ||
-      burstsRef.current.length > 0 ||
-      !reduce;
+      !document.hidden &&
+      (animRef.current !== null ||
+        dragRef.current !== null ||
+        burstsRef.current.length > 0 ||
+        !reduce);
 
     const loop = (time: number) => {
       render(time);
@@ -194,10 +196,14 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       kick();
     };
 
+    const onVisibility = () => {
+      if (!document.hidden) kick();
+    };
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerup", onUp);
     canvas.addEventListener("pointercancel", onCancel);
+    document.addEventListener("visibilitychange", onVisibility);
     kick();
 
     return () => {
@@ -207,6 +213,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);
       canvas.removeEventListener("pointercancel", onCancel);
+      document.removeEventListener("visibilitychange", onVisibility);
       unwatch();
     };
   }, [opts.worldWidth, opts.worldHeight]);
