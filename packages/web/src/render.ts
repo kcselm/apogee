@@ -8,6 +8,7 @@ import {
   type GameState,
   type ProbeFrame,
 } from "@apogee/engine";
+import type { Burst } from "./space/effects";
 
 /** Fixed decorative starfield (render-only; never touches the sim). */
 const STARS: { x: number; y: number; r: number }[] = (() => {
@@ -29,6 +30,14 @@ export interface RenderView {
   previewPath: { x: number; y: number }[] | null;
   /** Current drag vector while aiming (drawn at the launch pad). */
   drag: { dx: number; dy: number } | null;
+  /** Recent positions of the in-flight probe (oldest→newest), or null. */
+  trail: { x: number; y: number }[] | null;
+  /** Active impact bursts to draw. */
+  bursts: Burst[];
+  /** Loop time in ms (frozen at 0 under reduced motion). */
+  time: number;
+  /** Whether ambient motion is enabled this frame. */
+  animate: boolean;
 }
 
 export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void {
@@ -113,6 +122,10 @@ export interface CampaignRenderView {
   probeFrames: ProbeFrame[] | null;
   previewPath: { x: number; y: number }[] | null;
   drag: { dx: number; dy: number } | null;
+  trail: { x: number; y: number }[] | null;
+  bursts: Burst[];
+  time: number;
+  animate: boolean;
 }
 
 export function drawCampaignFrame(
