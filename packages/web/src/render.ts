@@ -194,6 +194,44 @@ function glowStroke(
   ctx.restore();
 }
 
+function drawTrail(
+  ctx: CanvasRenderingContext2D,
+  trail: { x: number; y: number }[] | null,
+): void {
+  if (!trail || trail.length < 2) return;
+  let prev = trail[0]!;
+  for (let i = 1; i < trail.length; i++) {
+    const p = trail[i]!;
+    const a = i / trail.length;
+    ctx.strokeStyle = `rgba(180,210,255,${a * 0.5})`;
+    ctx.lineWidth = a * PROBE_RADIUS * 1.2;
+    ctx.beginPath();
+    ctx.moveTo(prev.x, prev.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    prev = p;
+  }
+}
+
+function drawProbe(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  landed: boolean,
+  time: number,
+  animate: boolean,
+): void {
+  const pulse = animate && landed ? 1 + 0.15 * Math.sin(time * 0.006) : 1;
+  ctx.save();
+  ctx.shadowColor = landed ? "rgba(165,214,167,0.9)" : "rgba(200,220,255,0.95)";
+  ctx.shadowBlur = landed ? 12 : 9;
+  ctx.fillStyle = landed ? COLORS.probeLanded : COLORS.probe;
+  ctx.beginPath();
+  ctx.arc(x, y, PROBE_RADIUS * pulse, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void {
   const { game } = view;
   ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -245,16 +283,14 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
     ctx.stroke();
   }
 
-  // Probes (animated frames take precedence over settled state)
+  // In-flight trail, then probes.
+  drawTrail(ctx, view.trail);
   const frames: ProbeFrame[] =
     view.probeFrames ??
     game.probes.map((p) => ({ x: p.pos.x, y: p.pos.y, state: p.state }));
   for (const f of frames) {
     if (f.state === "lost") continue;
-    ctx.fillStyle = f.state === "landed" ? "#a5d6a7" : "#ffffff";
-    ctx.beginPath();
-    ctx.arc(f.x, f.y, PROBE_RADIUS, 0, Math.PI * 2);
-    ctx.fill();
+    drawProbe(ctx, f.x, f.y, f.state === "landed", view.time, view.animate);
   }
 }
 
@@ -387,15 +423,13 @@ export function drawCampaignFrame(
     ctx.stroke();
   }
 
-  // Probes.
+  // In-flight trail, then probes.
+  drawTrail(ctx, view.trail);
   const frames: ProbeFrame[] =
     view.probeFrames ??
     state.probes.map((p) => ({ x: p.pos.x, y: p.pos.y, state: p.state }));
   for (const f of frames) {
     if (f.state === "lost") continue;
-    ctx.fillStyle = f.state === "landed" ? "#a5d6a7" : "#ffffff";
-    ctx.beginPath();
-    ctx.arc(f.x, f.y, PROBE_RADIUS, 0, Math.PI * 2);
-    ctx.fill();
+    drawProbe(ctx, f.x, f.y, f.state === "landed", view.time, view.animate);
   }
 }
