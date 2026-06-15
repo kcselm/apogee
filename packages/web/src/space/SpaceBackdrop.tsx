@@ -21,6 +21,7 @@ export function SpaceBackdrop() {
     let field: Starfield;
     let reduce = prefersReducedMotion();
     let raf = 0;
+    let cancelled = false;
 
     const resize = () => {
       width = window.innerWidth;
@@ -35,6 +36,7 @@ export function SpaceBackdrop() {
     };
 
     const frame = (t: number) => {
+      if (cancelled) return;
       drawBackdrop(ctx, {
         width,
         height,
@@ -70,6 +72,7 @@ export function SpaceBackdrop() {
     window.addEventListener("resize", onResize);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
+      cancelled = true;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", onResize);
       document.removeEventListener("visibilitychange", onVisibility);
