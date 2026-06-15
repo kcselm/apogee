@@ -11,7 +11,7 @@ import {
 import type { Burst } from "./space/effects";
 import { burstProgress } from "./space/effects";
 import { COLORS } from "./space/palette";
-import { PLANET_PALETTES, planetTypeFor } from "./space/planetStyle";
+import { PLANET_PALETTES, planetTypeFor, type PlanetType } from "./space/planetStyle";
 
 /** Near-field dust (render-only); parallaxes with the aim drag for depth. */
 const DUST: { x: number; y: number; r: number }[] = (() => {
@@ -58,91 +58,171 @@ export interface RenderView {
   animate: boolean;
 }
 
+/** Jupiter-like latitude palette (top→bottom): alternating warm zones & belts. */
+const JUP = [
+  "#cda877", "#e9d8b4", "#b98a52", "#dcc59a", "#a06a3a", "#e6d2a8", "#bb8a55",
+  "#d7be90", "#8f5d33", "#e2cda0", "#ad7846", "#d2b888", "#9a6a3e", "#c7a675",
+];
+
+/** Cached offscreen planet sprites — rich detail rendered once, blitted per frame. */
+const planetCache = new Map<string, HTMLCanvasElement>();
+
+/** Render a fully-shaded planet centered at (cx,cy) into `ctx` (used for the sprite). */
+function renderPlanetSphere(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  r: number,
+  type: PlanetType,
+  seed: number,
+): void {
+  const pal = PLANET_PALETTES[type];
+  const rand = mulberry32(seed);
+
+  // Atmosphere halo.
+  const haloR = r * 1.55;
+  const halo = ctx.createRadialGradient(cx, cy, r * 0.82, cx, cy, haloR);
+  halo.addColorStop(0, pal.halo);
+  halo.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(cx, cy, haloR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Surface, clipped to the disc.
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.clip();
+
+  if (type === "gasGiant") {
+    // Banded base: many latitude colors with soft transitions.
+    const g = ctx.createLinearGradient(0, cy - r, 0, cy + r);
+    for (let i = 0; i < JUP.length; i++) g.addColorStop(i / (JUP.length - 1), JUP[i]!);
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+
+    // Turbulence: thin wavy bands break the straight-stripe look.
+    for (let i = 0; i < 48; i++) {
+      const y = cy - r + (i + rand()) * ((2 * r) / 48);
+      const amp = r * (0.02 + 0.05 * rand());
+      const ph = rand() * 6.283;
+      const th = r * (0.02 + 0.05 * rand());
+      ctx.fillStyle =
+        rand() < 0.5
+          ? `rgba(60,35,15,${0.05 + 0.1 * rand()})`
+          : `rgba(255,240,210,${0.04 + 0.08 * rand()})`;
+      ctx.beginPath();
+      ctx.moveTo(cx - r, y);
+      for (let x = -r; x <= r; x += r / 6) ctx.lineTo(cx + x, y + Math.sin((x / r) * 3.1 + ph) * amp);
+      ctx.lineTo(cx + r, y + th);
+      for (let x = r; x >= -r; x -= r / 6)
+        ctx.lineTo(cx + x, y + th + Math.sin((x / r) * 3.1 + ph) * amp);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Great Red Spot (placed per-planet so gas giants differ).
+    const sx = cx + r * (0.15 + 0.3 * rand());
+    const sy = cy + r * (0.1 + 0.25 * rand());
+    const sw = r * 0.26;
+    const spot = ctx.createRadialGradient(sx, sy, 0, sx, sy, sw);
+    spot.addColorStop(0, "rgba(184,72,42,0.85)");
+    spot.addColorStop(0.6, "rgba(150,60,38,0.5)");
+    spot.addColorStop(1, "rgba(150,60,38,0)");
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.scale(1, 0.55);
+    ctx.translate(-sx, -sy);
+    ctx.fillStyle = spot;
+    ctx.beginPath();
+    ctx.arc(sx, sy, sw, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  } else {
+    // Rocky / ice: shaded body gradient + soft mottling (craters / ice patches).
+    const g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r);
+    g.addColorStop(0, pal.core);
+    g.addColorStop(0.5, pal.mid);
+    g.addColorStop(1, pal.edge);
+    ctx.fillStyle = g;
+    ctx.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+
+    const blobs = type === "rocky" ? 9 : 6;
+    for (let i = 0; i < blobs; i++) {
+      const bx = cx + (rand() * 2 - 1) * r * 0.75;
+      const by = cy + (rand() * 2 - 1) * r * 0.75;
+      const br = r * (0.12 + 0.22 * rand());
+      const dark = type === "rocky" ? rand() < 0.6 : rand() < 0.35;
+      const a = 0.1 + 0.14 * rand();
+      const blob = ctx.createRadialGradient(bx, by, 0, bx, by, br);
+      blob.addColorStop(0, dark ? `rgba(20,16,24,${a})` : `rgba(235,245,255,${a})`);
+      blob.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = blob;
+      ctx.beginPath();
+      ctx.arc(bx, by, br, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+
+  // Limb darkening — dark all around the rim is what sells the sphere.
+  const limb = ctx.createRadialGradient(cx, cy, r * 0.55, cx, cy, r);
+  limb.addColorStop(0, "rgba(0,0,0,0)");
+  limb.addColorStop(1, "rgba(6,3,0,0.7)");
+  ctx.fillStyle = limb;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Sun-side highlight (upper-left).
+  const hl = ctx.createRadialGradient(
+    cx - r * 0.35,
+    cy - r * 0.4,
+    0,
+    cx - r * 0.35,
+    cy - r * 0.4,
+    r * 0.95,
+  );
+  hl.addColorStop(0, "rgba(255,245,225,0.2)");
+  hl.addColorStop(0.5, "rgba(255,245,225,0)");
+  ctx.fillStyle = hl;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Rim.
+  ctx.strokeStyle = "rgba(200,215,245,0.18)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function planetSprite(type: PlanetType, radius: number, seed: number): HTMLCanvasElement {
+  const key = `${type}-${Math.round(radius)}-${seed}`;
+  const cached = planetCache.get(key);
+  if (cached) return cached;
+  const size = Math.ceil(radius * 1.55 * 2);
+  const cv = document.createElement("canvas");
+  cv.width = size;
+  cv.height = size;
+  const sctx = cv.getContext("2d")!;
+  renderPlanetSphere(sctx, size / 2, size / 2, radius, type, seed);
+  planetCache.set(key, cv);
+  return cv;
+}
+
 function drawPlanet(
   ctx: CanvasRenderingContext2D,
   pos: { x: number; y: number },
   radius: number,
 ): void {
   const type = planetTypeFor(pos);
-  const pal = PLANET_PALETTES[type];
-
-  // Atmosphere halo.
-  const haloR = radius * 1.5;
-  const halo = ctx.createRadialGradient(pos.x, pos.y, radius * 0.85, pos.x, pos.y, haloR);
-  halo.addColorStop(0, pal.halo);
-  halo.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = halo;
-  ctx.beginPath();
-  ctx.arc(pos.x, pos.y, haloR, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Body.
-  const g = ctx.createRadialGradient(
-    pos.x - radius * 0.3,
-    pos.y - radius * 0.35,
-    radius * 0.1,
-    pos.x,
-    pos.y,
-    radius,
-  );
-  g.addColorStop(0, pal.core);
-  g.addColorStop(0.5, pal.mid);
-  g.addColorStop(1, pal.edge);
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Gas-giant banding: soft, irregular-width latitude belts that bow with the
-  // sphere. Low-alpha warm tints over the body gradient — reads as atmosphere,
-  // not stripes. Edges are fractions of the radius (top → bottom), deliberately
-  // uneven so no two belts match.
-  if (type === "gasGiant") {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-    ctx.clip();
-    const edges = [-1.05, -0.74, -0.55, -0.34, -0.12, 0.05, 0.27, 0.44, 0.69, 1.05];
-    for (let i = 0; i < edges.length - 1; i++) {
-      const yTop = pos.y + edges[i]! * radius;
-      const yBot = pos.y + edges[i + 1]! * radius;
-      // Bands nearer the equator bow less; nearer the poles bow more, following
-      // the sphere's curvature.
-      const bow = radius * 0.12 * (1 - Math.abs((edges[i]! + edges[i + 1]!) / 2));
-      ctx.fillStyle = i % 2 === 0 ? "rgba(255, 234, 205, 0.10)" : "rgba(96, 58, 30, 0.16)";
-      ctx.beginPath();
-      ctx.moveTo(pos.x - radius, yTop);
-      ctx.quadraticCurveTo(pos.x, yTop + bow, pos.x + radius, yTop);
-      ctx.lineTo(pos.x + radius, yBot);
-      ctx.quadraticCurveTo(pos.x, yBot + bow, pos.x - radius, yBot);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-
-  // Terminator shadow.
-  const term = ctx.createRadialGradient(
-    pos.x + radius * 0.5,
-    pos.y + radius * 0.5,
-    radius * 0.2,
-    pos.x,
-    pos.y,
-    radius,
-  );
-  term.addColorStop(0, "rgba(0,0,0,0)");
-  term.addColorStop(1, "rgba(0,0,10,0.55)");
-  ctx.fillStyle = term;
-  ctx.beginPath();
-  ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Rim light.
-  ctx.strokeStyle = "rgba(180,200,240,0.25)";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
-  ctx.stroke();
+  // Stable per-position seed → each planet keeps its own look across frames.
+  const seed = ((Math.round(pos.x) * 73856093) ^ (Math.round(pos.y) * 19349663)) >>> 0;
+  const sprite = planetSprite(type, radius, seed);
+  ctx.drawImage(sprite, pos.x - sprite.width / 2, pos.y - sprite.height / 2);
 }
 
 function drawBlocker(
