@@ -58,10 +58,21 @@ export interface RenderView {
   animate: boolean;
 }
 
-/** Jupiter-like latitude palette (top→bottom): alternating warm zones & belts. */
-const JUP = [
-  "#cda877", "#e9d8b4", "#b98a52", "#dcc59a", "#a06a3a", "#e6d2a8", "#bb8a55",
-  "#d7be90", "#8f5d33", "#e2cda0", "#ad7846", "#d2b888", "#9a6a3e", "#c7a675",
+const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
+const hsla = (h: number, s: number, l: number, a = 1): string =>
+  `hsla(${Math.round(h)}, ${clamp(s, 8, 85)}%, ${clamp(l, 10, 92)}%, ${a})`;
+
+/** Gas-giant color families (base hue/sat/light). One is picked per planet so no
+ *  two gas giants look alike — jovian orange, pale gold, ice-blue, rust, teal,
+ *  dusty violet, slate-grey. */
+const GAS_THEMES: { h: number; s: number; l: number }[] = [
+  { h: 32, s: 48, l: 60 },
+  { h: 44, s: 40, l: 70 },
+  { h: 206, s: 42, l: 56 },
+  { h: 12, s: 52, l: 52 },
+  { h: 165, s: 30, l: 54 },
+  { h: 268, s: 26, l: 56 },
+  { h: 28, s: 16, l: 58 },
 ];
 
 /** Cached offscreen planet sprites — rich detail rendered once, blitted per frame. */
@@ -78,11 +89,13 @@ function renderPlanetSphere(
 ): void {
   const pal = PLANET_PALETTES[type];
   const rand = mulberry32(seed);
+  // Gas giants pick a color family up front so the halo matches the body.
+  const theme = type === "gasGiant" ? GAS_THEMES[Math.floor(rand() * GAS_THEMES.length)]! : null;
 
   // Atmosphere halo.
   const haloR = r * 1.55;
   const halo = ctx.createRadialGradient(cx, cy, r * 0.82, cx, cy, haloR);
-  halo.addColorStop(0, pal.halo);
+  halo.addColorStop(0, theme ? hsla(theme.h, theme.s + 8, theme.l, 0.42) : pal.halo);
   halo.addColorStop(1, "rgba(0,0,0,0)");
   ctx.fillStyle = halo;
   ctx.beginPath();
@@ -95,23 +108,31 @@ function renderPlanetSphere(
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.clip();
 
-  if (type === "gasGiant") {
-    // Banded base: many latitude colors with soft transitions.
+  if (theme) {
+    // Banded base: latitude zones/belts generated from this planet's color
+    // family, with per-band hue/lightness jitter and a varied band count so no
+    // two gas giants share a palette.
+    const n = 12 + Math.floor(rand() * 5);
     const g = ctx.createLinearGradient(0, cy - r, 0, cy + r);
-    for (let i = 0; i < JUP.length; i++) g.addColorStop(i / (JUP.length - 1), JUP[i]!);
+    for (let i = 0; i < n; i++) {
+      const belt = i % 2 === 0;
+      const l = theme.l + (belt ? 7 + rand() * 7 : -(7 + rand() * 7));
+      g.addColorStop(i / (n - 1), hsla(theme.h + (rand() * 12 - 6), theme.s + (rand() * 14 - 7), l));
+    }
     ctx.fillStyle = g;
     ctx.fillRect(cx - r, cy - r, 2 * r, 2 * r);
 
-    // Turbulence: thin wavy bands break the straight-stripe look.
-    for (let i = 0; i < 48; i++) {
-      const y = cy - r + (i + rand()) * ((2 * r) / 48);
+    // Turbulence: thin wavy bands tinted to the family break the straight look.
+    const bands = 40 + Math.floor(rand() * 20);
+    for (let i = 0; i < bands; i++) {
+      const y = cy - r + (i + rand()) * ((2 * r) / bands);
       const amp = r * (0.02 + 0.05 * rand());
       const ph = rand() * 6.283;
       const th = r * (0.02 + 0.05 * rand());
       ctx.fillStyle =
         rand() < 0.5
-          ? `rgba(60,35,15,${0.05 + 0.1 * rand()})`
-          : `rgba(255,240,210,${0.04 + 0.08 * rand()})`;
+          ? hsla(theme.h, theme.s * 0.7, theme.l * 0.4, 0.05 + 0.1 * rand())
+          : hsla(theme.h, theme.s * 0.5, theme.l * 1.45, 0.04 + 0.08 * rand());
       ctx.beginPath();
       ctx.moveTo(cx - r, y);
       for (let x = -r; x <= r; x += r / 6) ctx.lineTo(cx + x, y + Math.sin((x / r) * 3.1 + ph) * amp);
@@ -122,23 +143,27 @@ function renderPlanetSphere(
       ctx.fill();
     }
 
-    // Great Red Spot (placed per-planet so gas giants differ).
-    const sx = cx + r * (0.15 + 0.3 * rand());
-    const sy = cy + r * (0.1 + 0.25 * rand());
-    const sw = r * 0.26;
-    const spot = ctx.createRadialGradient(sx, sy, 0, sx, sy, sw);
-    spot.addColorStop(0, "rgba(184,72,42,0.85)");
-    spot.addColorStop(0.6, "rgba(150,60,38,0.5)");
-    spot.addColorStop(1, "rgba(150,60,38,0)");
-    ctx.save();
-    ctx.translate(sx, sy);
-    ctx.scale(1, 0.55);
-    ctx.translate(-sx, -sy);
-    ctx.fillStyle = spot;
-    ctx.beginPath();
-    ctx.arc(sx, sy, sw, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    // A storm on roughly half of them — color drawn from the family, hue-shifted,
+    // not always a red spot.
+    if (rand() < 0.5) {
+      const sx = cx + r * (rand() * 1.2 - 0.6);
+      const sy = cy + r * (rand() * 1.0 - 0.5);
+      const sw = r * (0.14 + 0.14 * rand());
+      const sh = theme.h + (rand() * 50 - 25);
+      const spot = ctx.createRadialGradient(sx, sy, 0, sx, sy, sw);
+      spot.addColorStop(0, hsla(sh, theme.s + 25, theme.l - 16, 0.8));
+      spot.addColorStop(0.6, hsla(sh, theme.s + 15, theme.l - 10, 0.45));
+      spot.addColorStop(1, hsla(sh, theme.s + 15, theme.l - 10, 0));
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.scale(1, 0.55);
+      ctx.translate(-sx, -sy);
+      ctx.fillStyle = spot;
+      ctx.beginPath();
+      ctx.arc(sx, sy, sw, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   } else {
     // Rocky / ice: shaded body gradient + soft mottling (craters / ice patches).
     const g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.1, cx, cy, r);
