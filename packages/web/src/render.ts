@@ -9,6 +9,7 @@ import {
   type ProbeFrame,
 } from "@apogee/engine";
 import type { Burst } from "./space/effects";
+import { burstProgress } from "./space/effects";
 import { COLORS } from "./space/palette";
 import { PLANET_PALETTES, planetTypeFor } from "./space/planetStyle";
 
@@ -232,6 +233,24 @@ function drawProbe(
   ctx.restore();
 }
 
+function drawBursts(
+  ctx: CanvasRenderingContext2D,
+  bursts: { x: number; y: number; start: number; kind: "land" | "lost" }[],
+  time: number,
+): void {
+  for (const b of bursts) {
+    const p = burstProgress(b, time);
+    const r = PROBE_RADIUS + p * PROBE_RADIUS * 5;
+    const fade = 1 - p;
+    ctx.strokeStyle =
+      b.kind === "land" ? `rgba(165,214,167,${fade * 0.8})` : `rgba(224,86,74,${fade * 0.8})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
 export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void {
   const { game } = view;
   ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -292,6 +311,8 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
     if (f.state === "lost") continue;
     drawProbe(ctx, f.x, f.y, f.state === "landed", view.time, view.animate);
   }
+
+  drawBursts(ctx, view.bursts, view.time);
 }
 
 export interface CampaignRenderView {
@@ -432,4 +453,6 @@ export function drawCampaignFrame(
     if (f.state === "lost") continue;
     drawProbe(ctx, f.x, f.y, f.state === "landed", view.time, view.animate);
   }
+
+  drawBursts(ctx, view.bursts, view.time);
 }
