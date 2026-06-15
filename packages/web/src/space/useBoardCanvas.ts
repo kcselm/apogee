@@ -1,7 +1,7 @@
 import { type LaunchInput, type ProbeFrame, PREVIEW_STEPS } from "@apogee/engine";
 import { useEffect, useRef } from "react";
 import { type Burst, pruneBursts } from "./effects";
-import { prefersReducedMotion } from "./motion";
+import { prefersReducedMotion, watchReducedMotion } from "./motion";
 import { clearTrail, createTrail, pushTrail } from "./trail";
 
 export interface BoardDrawOpts {
@@ -81,7 +81,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
-    const reduce = prefersReducedMotion();
+    let reduce = prefersReducedMotion();
     let raf = 0;
 
     const computePreview = (): { x: number; y: number }[] | null => {
@@ -161,7 +161,16 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     };
     kickRef.current = kick;
 
+    // Respect live OS reduce-motion changes. On re-enabling motion, resume the
+    // ambient loop; on disabling, the loop stops itself next frame via wantLoop().
+    const unwatch = watchReducedMotion((r) => {
+      reduce = r;
+      if (!r) kick();
+    });
+
     const onDown = (e: PointerEvent) => {
+      // `disabled` (from the parent) lags one render behind anim start, so also
+      // gate on animRef to never begin a drag mid-animation.
       if (cbRef.current.disabled || animRef.current) return;
       canvas.setPointerCapture(e.pointerId);
       dragRef.current = { dx: 0, dy: 0 };
@@ -198,6 +207,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);
       canvas.removeEventListener("pointercancel", onCancel);
+      unwatch();
     };
   }, [opts.worldWidth, opts.worldHeight]);
 
