@@ -10,6 +10,7 @@ import {
 } from "@apogee/engine";
 import type { Burst } from "./space/effects";
 import { COLORS } from "./space/palette";
+import { PLANET_PALETTES, planetTypeFor } from "./space/planetStyle";
 
 /** Near-field dust (render-only); parallaxes with the aim drag for depth. */
 const DUST: { x: number; y: number; r: number }[] = (() => {
@@ -56,6 +57,126 @@ export interface RenderView {
   animate: boolean;
 }
 
+function drawPlanet(
+  ctx: CanvasRenderingContext2D,
+  pos: { x: number; y: number },
+  radius: number,
+): void {
+  const type = planetTypeFor(pos);
+  const pal = PLANET_PALETTES[type];
+
+  // Atmosphere halo.
+  const haloR = radius * 1.5;
+  const halo = ctx.createRadialGradient(pos.x, pos.y, radius * 0.85, pos.x, pos.y, haloR);
+  halo.addColorStop(0, pal.halo);
+  halo.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, haloR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body.
+  const g = ctx.createRadialGradient(
+    pos.x - radius * 0.3,
+    pos.y - radius * 0.35,
+    radius * 0.1,
+    pos.x,
+    pos.y,
+    radius,
+  );
+  g.addColorStop(0, pal.core);
+  g.addColorStop(0.5, pal.mid);
+  g.addColorStop(1, pal.edge);
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Gas-giant banding (clipped to the disc).
+  if (type === "gasGiant") {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.globalAlpha = 0.12;
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = radius * 0.12;
+    for (let i = -3; i <= 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(pos.x - radius, pos.y + i * radius * 0.28);
+      ctx.lineTo(pos.x + radius, pos.y + i * radius * 0.28 + radius * 0.1);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Terminator shadow.
+  const term = ctx.createRadialGradient(
+    pos.x + radius * 0.5,
+    pos.y + radius * 0.5,
+    radius * 0.2,
+    pos.x,
+    pos.y,
+    radius,
+  );
+  term.addColorStop(0, "rgba(0,0,0,0)");
+  term.addColorStop(1, "rgba(0,0,10,0.55)");
+  ctx.fillStyle = term;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Rim light.
+  ctx.strokeStyle = "rgba(180,200,240,0.25)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function drawBlocker(
+  ctx: CanvasRenderingContext2D,
+  pos: { x: number; y: number },
+  radius: number,
+  time: number,
+  animate: boolean,
+): void {
+  const g = ctx.createRadialGradient(
+    pos.x - radius * 0.3,
+    pos.y - radius * 0.3,
+    radius * 0.1,
+    pos.x,
+    pos.y,
+    radius,
+  );
+  g.addColorStop(0, "#7a2a2f");
+  g.addColorStop(0.6, COLORS.blockerBody);
+  g.addColorStop(1, "#1a0a0c");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.save();
+  ctx.shadowColor = COLORS.blockerRim;
+  ctx.shadowBlur = 10;
+  ctx.strokeStyle = COLORS.blockerRim;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // Pulsing hazard ring.
+  const pulse = animate ? 0.35 + 0.15 * Math.sin(time * 0.005) : 0.35;
+  ctx.strokeStyle = `rgba(224, 86, 74, ${pulse})`;
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, radius + PROBE_RADIUS + 4, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
 export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void {
   const { game } = view;
   ctx.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -76,13 +197,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
 
   // Planets
   for (const p of game.system.planets) {
-    ctx.fillStyle = "#26334d";
-    ctx.beginPath();
-    ctx.arc(p.pos.x, p.pos.y, p.radius, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "#52628a";
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    drawPlanet(ctx, p.pos, p.radius);
   }
 
   // Launch pad
@@ -148,30 +263,12 @@ export function drawCampaignFrame(
   // Transparent over the shared cosmos backdrop; only near-field dust here.
   drawDust(ctx, view.drag, view.animate);
 
-  // Bodies: planets (blue) vs blockers (hostile red with a hazard ring).
+  // Bodies: planets vs hostile blockers.
   for (const b of level.bodies) {
     if (b.kind === "blocker") {
-      ctx.fillStyle = "#4d2026";
-      ctx.beginPath();
-      ctx.arc(b.pos.x, b.pos.y, b.radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#e0564a";
-      ctx.lineWidth = 3;
-      ctx.stroke();
-      ctx.strokeStyle = "rgba(224, 86, 74, 0.35)";
-      ctx.setLineDash([4, 6]);
-      ctx.beginPath();
-      ctx.arc(b.pos.x, b.pos.y, b.radius + PROBE_RADIUS + 4, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      drawBlocker(ctx, b.pos, b.radius, view.time, view.animate);
     } else {
-      ctx.fillStyle = "#26334d";
-      ctx.beginPath();
-      ctx.arc(b.pos.x, b.pos.y, b.radius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#52628a";
-      ctx.lineWidth = 3;
-      ctx.stroke();
+      drawPlanet(ctx, b.pos, b.radius);
     }
   }
 
