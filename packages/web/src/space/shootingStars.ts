@@ -25,7 +25,10 @@ export function activeShootingStars(
     if (s < 0) continue;
     const rng = mulberry32((seed ^ (s * 2654435761)) >>> 0);
     if (rng() > SPAWN_CHANCE) continue;
-    const spawn = s * INTERVAL + rng() * (INTERVAL - DURATION);
+    // Spawn anywhere in the slot; a late spawn stays visible into the next
+    // slot, which is why the loop also checks `slot - 1`. age<0 / age>DURATION
+    // filter to the visible window, so at most one star per slot is active.
+    const spawn = s * INTERVAL + rng() * INTERVAL;
     const age = time - spawn;
     if (age < 0 || age > DURATION) continue;
     const progress = age / DURATION;
