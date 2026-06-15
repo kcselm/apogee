@@ -1,5 +1,8 @@
 * { box-sizing: border-box; margin: 0; }
-body { background: #0b0e1a; color: #e8eaf6; font-family: system-ui, sans-serif; }
+body { background: #06070f; color: #e8eaf6; font-family: system-ui, sans-serif; }
+.space-backdrop {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; display: block;
+}
 #root { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; min-height: 100vh; }
 canvas {
   width: auto; height: auto;

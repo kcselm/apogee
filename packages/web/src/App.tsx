@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DailyGame } from "./DailyGame";
 import { CampaignMap } from "./campaign/CampaignMap";
 import { CampaignLevel } from "./campaign/CampaignLevel";
+import { SpaceBackdrop } from "./space/SpaceBackdrop";
 
 type View =
   | { name: "home" }
@@ -18,28 +19,37 @@ export function App() {
     setView({ name: "level", index });
   };
 
-  if (view.name === "daily") {
-    return <DailyGame onExit={() => setView({ name: "home" })} />;
-  }
-  if (view.name === "map") {
-    return <CampaignMap onExit={() => setView({ name: "home" })} onPlay={play} />;
-  }
-  if (view.name === "level") {
+  const screen = () => {
+    if (view.name === "daily") {
+      return <DailyGame onExit={() => setView({ name: "home" })} />;
+    }
+    if (view.name === "map") {
+      return <CampaignMap onExit={() => setView({ name: "home" })} onPlay={play} />;
+    }
+    if (view.name === "level") {
+      return (
+        <CampaignLevel
+          key={`${view.index}-${playCount}`}
+          index={view.index}
+          onExit={() => setView({ name: "map" })}
+          onPlay={play}
+        />
+      );
+    }
     return (
-      <CampaignLevel
-        key={`${view.index}-${playCount}`}
-        index={view.index}
-        onExit={() => setView({ name: "map" })}
-        onPlay={play}
-      />
+      <div className="home">
+        <h1>APOGEE</h1>
+        <p className="tagline">gravity is the only rule</p>
+        <button onClick={() => setView({ name: "daily" })}>Daily Challenge</button>
+        <button onClick={() => setView({ name: "map" })}>Campaign</button>
+      </div>
     );
-  }
+  };
+
   return (
-    <div className="home">
-      <h1>APOGEE</h1>
-      <p className="tagline">gravity is the only rule</p>
-      <button onClick={() => setView({ name: "daily" })}>Daily Challenge</button>
-      <button onClick={() => setView({ name: "map" })}>Campaign</button>
-    </div>
+    <>
+      <SpaceBackdrop />
+      {screen()}
+    </>
   );
 }
