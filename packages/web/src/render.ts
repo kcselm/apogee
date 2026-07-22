@@ -295,6 +295,26 @@ function drawBlocker(
   ctx.setLineDash([]);
 }
 
+function drawPortal(
+  ctx: CanvasRenderingContext2D,
+  p: { pos: { x: number; y: number }; radius: number; facing: { x: number; y: number } },
+  hue: number,
+): void {
+  const ring = `hsl(${hue}, 80%, 66%)`;
+  glowStroke(ctx, ring, 12, 3, () => {
+    ctx.beginPath();
+    ctx.arc(p.pos.x, p.pos.y, p.radius, 0, Math.PI * 2);
+  });
+  // Facing arrow — the direction a probe exits going.
+  const tipX = p.pos.x + p.facing.x * (p.radius + 16);
+  const tipY = p.pos.y + p.facing.y * (p.radius + 16);
+  glowStroke(ctx, `hsl(${hue}, 85%, 72%)`, 8, 2, () => {
+    ctx.beginPath();
+    ctx.moveTo(p.pos.x + p.facing.x * p.radius, p.pos.y + p.facing.y * p.radius);
+    ctx.lineTo(tipX, tipY);
+  });
+}
+
 function glowStroke(
   ctx: CanvasRenderingContext2D,
   color: string,
@@ -473,6 +493,26 @@ export function drawCampaignFrame(
     } else {
       drawPlanet(ctx, b.pos, b.radius);
     }
+  }
+
+  // Wormhole portals: a faint tether per pair, then oriented mouths (hue per pair).
+  const portals = level.portals ?? [];
+  for (let i = 0; i < portals.length; i++) {
+    const j = portals[i]!.link;
+    if (i < j) {
+      ctx.strokeStyle = COLORS.portalTether;
+      ctx.setLineDash([2, 12]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(portals[i]!.pos.x, portals[i]!.pos.y);
+      ctx.lineTo(portals[j]!.pos.x, portals[j]!.pos.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+  for (let i = 0; i < portals.length; i++) {
+    const pairHue = 185 + (Math.min(i, portals[i]!.link) >> 1) * 60;
+    drawPortal(ctx, portals[i]!, pairHue);
   }
 
   // Targets: open marks that fill + glow when hit.

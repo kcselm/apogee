@@ -15,4 +15,5 @@ export const COLORS = {
   target: "#ffb74d",
   targetHit: "#a5d6a7",
   orbitPath: "rgba(150,180,255,0.16)",
+  portalTether: "rgba(180,160,255,0.22)",
 } as const;
