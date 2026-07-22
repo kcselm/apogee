@@ -1,5 +1,6 @@
 import { WORLD_HEIGHT, WORLD_WIDTH } from "../constants";
-import type { Level } from "./types";
+import { makeOrbit } from "./orbit";
+import type { Body, Level } from "./types";
 
 const BOUNDS = { width: WORLD_WIDTH, height: WORLD_HEIGHT };
 const LAUNCH = { x: 80, y: 500 };
@@ -9,6 +10,20 @@ function planet(x: number, y: number, radius: number) {
 }
 function blocker(x: number, y: number, radius: number) {
   return { pos: { x, y }, radius, mass: radius * radius, kind: "blocker" as const };
+}
+
+/** A planet-kind body that orbits `(cx,cy)` — landable, gravitating, and moving. */
+function moon(
+  cx: number, cy: number, radius: number,
+  orbitRadius: number, phaseTurns: number, turnsPerPeriod: number,
+): Body {
+  return {
+    pos: { x: cx, y: cy },
+    radius,
+    mass: radius * radius,
+    kind: "planet",
+    orbit: makeOrbit({ x: cx, y: cy }, orbitRadius, phaseTurns, turnsPerPeriod),
+  };
 }
 
 /** True when a level has any orbiting body/sensor or any wormhole — i.e. it needs
@@ -147,5 +162,28 @@ export const LEVELS: Level[] = [
     targets: [{ pos: { x: 900, y: 280 }, radius: 24 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
     objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], starThresholds: { two: 9, three: 15 },
+  },
+
+  // --- Chapter 6: orbiting moons, reach the goal (16-18) ---
+  {
+    id: "6-1", name: "Moonrise",
+    bodies: [planet(800, 520, 70), moon(800, 520, 34, 200, 0, 1)],
+    keys: [], goal: { pos: { x: 1250, y: 360 }, radius: 40 }, targets: [],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+  },
+  {
+    id: "6-2", name: "Slingshot Tide",
+    bodies: [planet(760, 500, 80), moon(760, 500, 30, 190, 0.5, 1)],
+    keys: [], goal: { pos: { x: 700, y: 720 }, radius: 38 }, targets: [],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+  },
+  {
+    id: "6-3", name: "Twin Moons",
+    bodies: [planet(820, 500, 64), moon(820, 500, 28, 160, 0, 1), moon(820, 500, 28, 160, 0.5, -1)],
+    keys: [], goal: { pos: { x: 1300, y: 520 }, radius: 38 }, targets: [],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
   },
 ];
