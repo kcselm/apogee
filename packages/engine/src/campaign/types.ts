@@ -2,18 +2,30 @@ import type { Probe, Vec2 } from "../types";
 
 export type BodyKind = "planet" | "blocker";
 
+/** Circular orbit driving a moving body/sensor. `cosStep`/`sinStep` are baked at
+ *  authoring time (the only trig); the sim only rotates + renormalizes with them. */
+export interface Orbit {
+  center: Vec2;
+  offset0: Vec2;
+  radius: number;
+  cosStep: number;
+  sinStep: number;
+}
+
 /** A gravity source. Planets are landable; blockers are lethal on contact. */
 export interface Body {
   pos: Vec2;
   radius: number;
   mass: number;
   kind: BodyKind;
+  orbit?: Orbit;
 }
 
 /** Fly a probe through it to collect (persists for the rest of the level). */
 export interface Key {
   pos: Vec2;
   radius: number;
+  orbit?: Orbit;
 }
 
 /** Reach to satisfy a `reach-goal` objective (locked until keys collected). */
@@ -26,6 +38,7 @@ export interface Goal {
 export interface Target {
   pos: Vec2;
   radius: number;
+  orbit?: Orbit;
 }
 
 export type Objective = { kind: "reach-goal" } | { kind: "hit-all-targets" };
