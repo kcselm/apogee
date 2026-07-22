@@ -43,6 +43,15 @@ export interface Target {
 
 export type Objective = { kind: "reach-goal" } | { kind: "hit-all-targets" };
 
+/** One mouth of a wormhole pair. `facing` is a unit vector — the direction a probe
+ *  exits going. `link` is the index of the paired portal in `Level.portals`. */
+export interface Portal {
+  pos: Vec2;
+  radius: number;
+  facing: Vec2;
+  link: number;
+}
+
 export interface Level {
   id: string;
   name: string;
@@ -55,6 +64,7 @@ export interface Level {
   launchBudget: number;
   objectives: Objective[];
   starThresholds: { two: number; three: number };
+  portals?: Portal[];
 }
 
 export interface CampaignLevelState {
