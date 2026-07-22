@@ -3,6 +3,8 @@ import { LEVELS, isMovingLevel } from "../src/campaign/levels";
 import { SOLUTIONS } from "../src/campaign/solutions";
 import { findTimedSolution } from "./campaign-solver-timed";
 
+declare const process: { env: { SOLVE?: string } };
+
 // Skipped in CI. Run to print solutions to paste into src/campaign/solutions.ts:
 //   $env:SOLVE=1; pnpm --filter @apogee/engine exec vitest run discover-solutions
 describe.skipIf(!process.env.SOLVE)("discover solutions for moving levels", () => {
