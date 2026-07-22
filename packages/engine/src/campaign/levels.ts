@@ -269,4 +269,34 @@ export const LEVELS: Level[] = [
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
   },
+
+  // --- Chapter 10: everything together (28-30) ---
+  {
+    id: "10-1", name: "Convergence",
+    bodies: [planet(800, 520, 70), moon(800, 520, 28, 180, 0, 1)],
+    keys: [], goal: undefined,
+    targets: [{ pos: { x: 1300, y: 300 }, radius: 24 }, { pos: { x: 1000, y: 720 }, radius: 24 }],
+    portals: [makePortal(520, 340, 28, 150, 1), makePortal(1180, 300, 28, 20, 0)],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
+    objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 8, three: 14 },
+  },
+  {
+    id: "10-2", name: "Clockwork Lock",
+    bodies: [planet(900, 520, 72), moon(900, 520, 30, 200, 0, 1)],
+    keys: [{ pos: { x: 460, y: 320 }, radius: 26 }],
+    goal: { pos: { x: 1320, y: 300 }, radius: 36 }, targets: [],
+    portals: [makePortal(560, 640, 28, 120, 1), makePortal(1220, 360, 28, 20, 0)],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 8, three: 14 },
+  },
+  {
+    id: "10-3", name: "Event Horizon",
+    bodies: [blocker(640, 440, 52), planet(960, 620, 74), moon(960, 620, 28, 180, 0, -1)],
+    keys: [{ pos: { x: 480, y: 700 }, radius: 26 }],
+    goal: { pos: { x: 1360, y: 640 }, radius: 36 },
+    targets: [{ pos: { x: 980, y: 280 }, radius: 24 }],
+    portals: [makePortal(560, 300, 26, 140, 1), makePortal(1180, 760, 26, 340, 0)],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 7,
+    objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], starThresholds: { two: 9, three: 15 },
+  },
 ];
