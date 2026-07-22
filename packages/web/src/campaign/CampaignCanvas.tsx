@@ -28,7 +28,8 @@ export function CampaignCanvas({ state, disabled, anim, onLaunch, onAnimDone }: 
     adapter: {
       launchPos: state.level.launchPos,
       probeIndex: state.probes.length,
-      previewTrace: (drag, steps) => simulateCampaignLaunch(state, drag, steps).trace,
+      previewTrace: (drag, steps, tick) =>
+        simulateCampaignLaunch(state, { ...drag, launchTick: tick }, steps).trace,
       draw: (ctx, o: BoardDrawOpts) =>
         drawCampaignFrame(ctx, {
           state,
@@ -39,6 +40,7 @@ export function CampaignCanvas({ state, disabled, anim, onLaunch, onAnimDone }: 
           bursts: o.bursts,
           time: o.time,
           animate: o.animate,
+          boardTick: o.boardTick,
         }),
     },
   });

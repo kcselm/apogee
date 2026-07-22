@@ -12,6 +12,8 @@ export interface BoardDrawOpts {
   bursts: Burst[];
   time: number;
   animate: boolean;
+  /** Board-clock tick for this frame (drives moving-body rendering). */
+  boardTick: number;
 }
 
 /** Per-board adapter: where the launch pad is, how to preview, and how to draw. */
@@ -19,8 +21,8 @@ export interface BoardAdapter {
   launchPos: { x: number; y: number };
   /** Index of the just-launched probe in preview/anim frame arrays. */
   probeIndex: number;
-  /** Live-sim a preview trace for the given drag. */
-  previewTrace: (drag: LaunchInput, steps: number) => ProbeFrame[][];
+  /** Live-sim a preview trace for the given drag at the current board tick. */
+  previewTrace: (drag: LaunchInput, steps: number, tick: number) => ProbeFrame[][];
   /** Draw one frame. */
   draw: (ctx: CanvasRenderingContext2D, opts: BoardDrawOpts) => void;
 }
@@ -55,6 +57,10 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
   const burstsRef = useRef<Burst[]>([]);
   const frameIdxRef = useRef(0);
   const prevStateRef = useRef<ProbeFrame["state"]>("flying");
+  // Board clock: free-runs while aiming; during anim, tick = animStart + frameIdx.
+  const tickRef = useRef(0);
+  const lastLaunchTickRef = useRef(0);
+  const animStartTickRef = useRef(0);
 
   // Refs kept fresh every render so the persistent loop reads current values.
   const animRef = useRef(opts.anim);
@@ -67,6 +73,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
   if (opts.anim !== animRef.current) {
     animRef.current = opts.anim;
     frameIdxRef.current = 0;
+    animStartTickRef.current = lastLaunchTickRef.current;
     prevStateRef.current = "flying";
     clearTrail(trailRef.current);
   }
@@ -88,7 +95,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       const drag = dragRef.current;
       if (!drag || (drag.dx === 0 && drag.dy === 0)) return null;
       const adapter = adapterRef.current;
-      const trace = adapter.previewTrace(drag, PREVIEW_STEPS);
+      const trace = adapter.previewTrace(drag, PREVIEW_STEPS, tickRef.current);
       return trace
         .map((f) => f[adapter.probeIndex])
         .filter((f): f is ProbeFrame => f !== undefined && f.state === "flying")
@@ -102,6 +109,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       const t = motion ? time : 0;
       burstsRef.current = pruneBursts(burstsRef.current, time);
       if (anim) {
+        const boardTick = animStartTickRef.current + frameIdxRef.current;
         const i = Math.min(frameIdxRef.current, anim.length - 1);
         const probeFrames = anim[i] ?? null;
         const pf = probeFrames?.[adapter.probeIndex];
@@ -127,14 +135,17 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
           bursts: burstsRef.current,
           time: t,
           animate: motion,
+          boardTick,
         });
         frameIdxRef.current++;
         if (frameIdxRef.current >= anim.length) {
+          tickRef.current = animStartTickRef.current + anim.length;
           animRef.current = null;
           clearTrail(trailRef.current);
           cbRef.current.onAnimDone();
         }
       } else {
+        if (motion) tickRef.current++;
         adapter.draw(ctx, {
           probeFrames: null,
           previewPath: computePreview(),
@@ -143,6 +154,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
           bursts: burstsRef.current,
           time: t,
           animate: motion,
+          boardTick: tickRef.current,
         });
       }
     };
@@ -189,7 +201,10 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       const drag = dragRef.current;
       dragRef.current = null;
       kick();
-      if (drag && (drag.dx !== 0 || drag.dy !== 0)) cbRef.current.onLaunch(drag);
+      if (drag && (drag.dx !== 0 || drag.dy !== 0)) {
+        lastLaunchTickRef.current = tickRef.current;
+        cbRef.current.onLaunch({ dx: drag.dx, dy: drag.dy, launchTick: tickRef.current });
+      }
     };
     const onCancel = () => {
       dragRef.current = null;
