@@ -35,3 +35,36 @@ exports[`campaign golden replay > a fixed level + inputs matches the locked snap
   "stars": 2,
 }
 `;
+
+exports[`campaign golden replay — moving > a fixed moving level + timed inputs matches the locked snapshot 1`] = `
+{
+  "bestPrecision": 1,
+  "cleared": true,
+  "goalReached": true,
+  "probes": [
+    {
+      "pos": {
+        "x": 1800.613896523002,
+        "y": 874.5365520048572,
+      },
+      "state": "lost",
+      "vel": {
+        "x": 372.7823425488425,
+        "y": 193.07232503858626,
+      },
+    },
+    {
+      "pos": {
+        "x": 1754.9768480998673,
+        "y": 1200.1282485385045,
+      },
+      "state": "lost",
+      "vel": {
+        "x": 0.7334456329901506,
+        "y": 44.88187771510286,
+      },
+    },
+  ],
+  "stars": 2,
+}
+`;
