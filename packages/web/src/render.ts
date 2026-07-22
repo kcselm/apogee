@@ -13,6 +13,7 @@ import type { Burst } from "./space/effects";
 import { burstProgress } from "./space/effects";
 import { COLORS } from "./space/palette";
 import { PLANET_PALETTES, planetTypeFor, type PlanetType } from "./space/planetStyle";
+import { pathSegments } from "./space/previewPath";
 
 /** Near-field dust (render-only); parallaxes with the aim drag for depth. */
 const DUST: { x: number; y: number; r: number }[] = (() => {
@@ -332,6 +333,32 @@ function glowStroke(
   ctx.restore();
 }
 
+// A flying probe never moves more than ~MAX_SPEED*DT (=10) units per step (a
+// collision nudges it at most ~PROBE_RADIUS more), so any larger gap between
+// consecutive path points is a wormhole teleport. Lift the pen there so the
+// preview/trail goes INTO one portal and OUT the other instead of drawing a
+// straight line across the map.
+const TELEPORT_GAP2 = 60 * 60;
+
+/** Draw the dashed aim preview, breaking the line where the probe teleports so
+ *  it goes into one portal and out the other rather than straight across. */
+function strokePreviewPath(
+  ctx: CanvasRenderingContext2D,
+  path: { x: number; y: number }[],
+): void {
+  ctx.strokeStyle = COLORS.preview;
+  ctx.setLineDash([6, 8]);
+  ctx.lineWidth = 2;
+  for (const seg of pathSegments(path, TELEPORT_GAP2)) {
+    if (seg.length < 2) continue;
+    ctx.beginPath();
+    ctx.moveTo(seg[0]!.x, seg[0]!.y);
+    for (let i = 1; i < seg.length; i++) ctx.lineTo(seg[i]!.x, seg[i]!.y);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+}
+
 function drawTrail(
   ctx: CanvasRenderingContext2D,
   trail: { x: number; y: number }[] | null,
@@ -340,13 +367,18 @@ function drawTrail(
   let prev = trail[0]!;
   for (let i = 1; i < trail.length; i++) {
     const p = trail[i]!;
-    const a = i / trail.length;
-    ctx.strokeStyle = `rgba(180,210,255,${a * 0.5})`;
-    ctx.lineWidth = a * PROBE_RADIUS * 1.2;
-    ctx.beginPath();
-    ctx.moveTo(prev.x, prev.y);
-    ctx.lineTo(p.x, p.y);
-    ctx.stroke();
+    const dx = p.x - prev.x;
+    const dy = p.y - prev.y;
+    // Skip the connecting segment across a wormhole teleport.
+    if (dx * dx + dy * dy <= TELEPORT_GAP2) {
+      const a = i / trail.length;
+      ctx.strokeStyle = `rgba(180,210,255,${a * 0.5})`;
+      ctx.lineWidth = a * PROBE_RADIUS * 1.2;
+      ctx.beginPath();
+      ctx.moveTo(prev.x, prev.y);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    }
     prev = p;
   }
 }
@@ -421,14 +453,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
 
   // Aiming: preview path + drag indicator
   if (view.previewPath && view.previewPath.length > 1) {
-    ctx.strokeStyle = COLORS.preview;
-    ctx.setLineDash([6, 8]);
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(view.previewPath[0]!.x, view.previewPath[0]!.y);
-    for (const pt of view.previewPath) ctx.lineTo(pt.x, pt.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    strokePreviewPath(ctx, view.previewPath);
   }
   if (view.drag) {
     ctx.strokeStyle = COLORS.pad;
@@ -597,14 +622,7 @@ export function drawCampaignFrame(
 
   // Aiming preview + drag.
   if (view.previewPath && view.previewPath.length > 1) {
-    ctx.strokeStyle = COLORS.preview;
-    ctx.setLineDash([6, 8]);
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(view.previewPath[0]!.x, view.previewPath[0]!.y);
-    for (const pt of view.previewPath) ctx.lineTo(pt.x, pt.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    strokePreviewPath(ctx, view.previewPath);
   }
   if (view.drag) {
     ctx.strokeStyle = COLORS.pad;
