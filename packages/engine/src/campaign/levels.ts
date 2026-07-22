@@ -1,5 +1,6 @@
 import { WORLD_HEIGHT, WORLD_WIDTH } from "../constants";
 import { makeOrbit } from "./orbit";
+import { makePortal } from "./portal";
 import type { Body, Level } from "./types";
 
 const BOUNDS = { width: WORLD_WIDTH, height: WORLD_HEIGHT };
@@ -213,5 +214,31 @@ export const LEVELS: Level[] = [
     ],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 6, three: 11 },
+  },
+
+  // --- Chapter 8: wormholes, reach the goal (22-24) ---
+  {
+    id: "8-1", name: "Through the Door",
+    bodies: [planet(820, 700, 64)],
+    keys: [], goal: { pos: { x: 1360, y: 300 }, radius: 40 }, targets: [],
+    portals: [makePortal(520, 470, 32, 200, 1), makePortal(1150, 360, 32, 340, 0)],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+  },
+  {
+    id: "8-2", name: "Bent Passage",
+    bodies: [planet(640, 360, 80), planet(1080, 640, 72)],
+    keys: [], goal: { pos: { x: 1360, y: 640 }, radius: 38 }, targets: [],
+    portals: [makePortal(760, 560, 30, 160, 1), makePortal(1200, 420, 30, 20, 0)],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+  },
+  {
+    id: "8-3", name: "Redirect",
+    bodies: [blocker(900, 500, 64)],
+    keys: [], goal: { pos: { x: 1150, y: 720 }, radius: 40 }, targets: [],
+    portals: [makePortal(560, 560, 30, 120, 1), makePortal(1150, 260, 30, 90, 0)],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
   },
 ];
