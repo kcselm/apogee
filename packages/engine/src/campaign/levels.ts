@@ -241,4 +241,32 @@ export const LEVELS: Level[] = [
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
   },
+
+  // --- Chapter 9: wormholes meet keys/targets/blockers (25-27) ---
+  {
+    id: "9-1", name: "Portal Key",
+    bodies: [planet(820, 520, 72)],
+    keys: [{ pos: { x: 460, y: 300 }, radius: 26 }],
+    goal: { pos: { x: 1360, y: 300 }, radius: 38 }, targets: [],
+    portals: [makePortal(1000, 560, 30, 160, 1), makePortal(1280, 360, 30, 10, 0)],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+  },
+  {
+    id: "9-2", name: "Split Marks",
+    bodies: [planet(760, 500, 70)],
+    keys: [], goal: undefined,
+    targets: [{ pos: { x: 1300, y: 700 }, radius: 24 }, { pos: { x: 1000, y: 300 }, radius: 24 }],
+    portals: [makePortal(560, 360, 30, 150, 1), makePortal(1180, 700, 30, 330, 0)],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
+    objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 6, three: 11 },
+  },
+  {
+    id: "9-3", name: "Gauntlet Gate",
+    bodies: [blocker(620, 420, 54), blocker(760, 700, 54), planet(1080, 520, 80)],
+    keys: [], goal: { pos: { x: 1360, y: 560 }, radius: 36 }, targets: [],
+    portals: [makePortal(520, 560, 28, 140, 1), makePortal(1240, 400, 28, 20, 0)],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+  },
 ];
