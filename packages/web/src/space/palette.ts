@@ -14,4 +14,5 @@ export const COLORS = {
   key: "#ffd54f",
   target: "#ffb74d",
   targetHit: "#a5d6a7",
+  orbitPath: "rgba(150,180,255,0.16)",
 } as const;

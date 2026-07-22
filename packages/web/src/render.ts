@@ -4,6 +4,7 @@ import {
   WORLD_HEIGHT,
   WORLD_WIDTH,
   mulberry32,
+  orbitPositionAt,
   type CampaignLevelState,
   type GameState,
   type ProbeFrame,
@@ -242,10 +243,11 @@ function drawPlanet(
   ctx: CanvasRenderingContext2D,
   pos: { x: number; y: number },
   radius: number,
+  seedPos: { x: number; y: number } = pos,
 ): void {
-  const type = planetTypeFor(pos);
+  const type = planetTypeFor(seedPos);
   // Stable per-position seed → each planet keeps its own look across frames.
-  const seed = ((Math.round(pos.x) * 73856093) ^ (Math.round(pos.y) * 19349663)) >>> 0;
+  const seed = ((Math.round(seedPos.x) * 73856093) ^ (Math.round(seedPos.y) * 19349663)) >>> 0;
   const sprite = planetSprite(type, radius, seed);
   ctx.drawImage(sprite, pos.x - sprite.width / 2, pos.y - sprite.height / 2);
 }
@@ -439,6 +441,7 @@ export interface CampaignRenderView {
   bursts: Burst[];
   time: number;
   animate: boolean;
+  boardTick: number;
 }
 
 export function drawCampaignFrame(
@@ -452,9 +455,20 @@ export function drawCampaignFrame(
   // Transparent over the shared cosmos backdrop; only near-field dust here.
   drawDust(ctx, view.drag, view.animate);
 
-  // Bodies: planets vs hostile blockers.
+  // Bodies: planets, hostile blockers, and orbiting moons (with an orbit-path hint).
   for (const b of level.bodies) {
-    if (b.kind === "blocker") {
+    if (b.orbit) {
+      ctx.strokeStyle = COLORS.orbitPath;
+      ctx.setLineDash([2, 10]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(b.orbit.center.x, b.orbit.center.y, b.orbit.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const pos = orbitPositionAt(b.orbit, view.boardTick);
+      if (b.kind === "blocker") drawBlocker(ctx, pos, b.radius, view.time, view.animate);
+      else drawPlanet(ctx, pos, b.radius, b.orbit.center);
+    } else if (b.kind === "blocker") {
       drawBlocker(ctx, b.pos, b.radius, view.time, view.animate);
     } else {
       drawPlanet(ctx, b.pos, b.radius);
@@ -463,20 +477,22 @@ export function drawCampaignFrame(
 
   // Targets: open marks that fill + glow when hit.
   level.targets.forEach((t, i) => {
+    const pos = t.orbit ? orbitPositionAt(t.orbit, view.boardTick) : t.pos;
     const hit = state.targetsHit[i] ?? false;
     const color = hit ? COLORS.targetHit : COLORS.target;
     ctx.fillStyle = hit ? "rgba(165, 214, 167, 0.5)" : "rgba(255, 183, 77, 0.12)";
     ctx.beginPath();
-    ctx.arc(t.pos.x, t.pos.y, t.radius, 0, Math.PI * 2);
+    ctx.arc(pos.x, pos.y, t.radius, 0, Math.PI * 2);
     ctx.fill();
     glowStroke(ctx, color, hit ? 12 : 4, 3, () => {
       ctx.beginPath();
-      ctx.arc(t.pos.x, t.pos.y, t.radius, 0, Math.PI * 2);
+      ctx.arc(pos.x, pos.y, t.radius, 0, Math.PI * 2);
     });
   });
 
   // Keys: glinting diamonds, dimmed once collected.
   level.keys.forEach((k, i) => {
+    const pos = k.orbit ? orbitPositionAt(k.orbit, view.boardTick) : k.pos;
     const got = state.keysCollected[i] ?? false;
     const glint = view.animate && !got ? 0.6 + 0.4 * Math.sin(view.time * 0.004 + i) : 1;
     ctx.globalAlpha = got ? 0.25 : 1;
@@ -487,10 +503,10 @@ export function drawCampaignFrame(
     }
     ctx.fillStyle = COLORS.key;
     ctx.beginPath();
-    ctx.moveTo(k.pos.x, k.pos.y - k.radius);
-    ctx.lineTo(k.pos.x + k.radius, k.pos.y);
-    ctx.lineTo(k.pos.x, k.pos.y + k.radius);
-    ctx.lineTo(k.pos.x - k.radius, k.pos.y);
+    ctx.moveTo(pos.x, pos.y - k.radius);
+    ctx.lineTo(pos.x + k.radius, pos.y);
+    ctx.lineTo(pos.x, pos.y + k.radius);
+    ctx.lineTo(pos.x - k.radius, pos.y);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
