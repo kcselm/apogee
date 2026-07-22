@@ -186,4 +186,32 @@ export const LEVELS: Level[] = [
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
   },
+
+  // --- Chapter 7: moons meet blockers/keys/targets (19-21) ---
+  {
+    id: "7-1", name: "Moon & Guard",
+    bodies: [blocker(560, 500, 60), planet(1050, 520, 76), moon(1050, 520, 30, 170, 0, 1)],
+    keys: [], goal: { pos: { x: 1230, y: 360 }, radius: 40 }, targets: [],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+  },
+  {
+    id: "7-2", name: "Keyed Orbit",
+    bodies: [planet(820, 520, 76)],
+    keys: [{ pos: { x: 820, y: 520 }, radius: 26, orbit: makeOrbit({ x: 820, y: 520 }, 210, 0, 1) }],
+    goal: { pos: { x: 1250, y: 360 }, radius: 38 }, targets: [],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
+    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+  },
+  {
+    id: "7-3", name: "Moving Marks",
+    bodies: [planet(760, 420, 70), planet(1040, 660, 72)],
+    keys: [], goal: undefined,
+    targets: [
+      { pos: { x: 1220, y: 360 }, radius: 26 },
+      { pos: { x: 760, y: 420 }, radius: 24, orbit: makeOrbit({ x: 760, y: 420 }, 170, 0, 1) },
+    ],
+    launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
+    objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 6, three: 11 },
+  },
 ];
