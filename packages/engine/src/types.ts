@@ -31,10 +31,13 @@ export interface Probe {
   state: ProbeState;
 }
 
-/** Raw drag vector from aiming; engine derives direction and clamped speed. */
+/** Raw drag vector from aiming; engine derives direction and clamped speed.
+ *  `launchTick` is the board-clock tick a campaign launch fired on (moving fields);
+ *  optional, defaults 0, ignored by the Daily engine and static levels. */
 export interface LaunchInput {
   dx: number;
   dy: number;
+  launchTick?: number;
 }
 
 /** One probe's position+state at one sim step (for animation/preview). */
