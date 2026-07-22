@@ -6,5 +6,6 @@ export { advanceOrbit, makeOrbit, orbitOffsetAt, orbitPositionAt } from "./orbit
 export { createLevel, simulateCampaignLaunch } from "./simulate";
 export { evaluateObjectives, isLevelOver } from "./objectives";
 export { precisionPoints, starRating } from "./scoring";
-export { LEVELS } from "./levels";
 export { makePortal, portalExitRotation, rotateVec } from "./portal";
+export { LEVELS, isMovingLevel } from "./levels";
+export { SOLUTIONS } from "./solutions";

@@ -11,6 +11,17 @@ function blocker(x: number, y: number, radius: number) {
   return { pos: { x, y }, radius, mass: radius * radius, kind: "blocker" as const };
 }
 
+/** True when a level has any orbiting body/sensor or any wormhole — i.e. it needs
+ *  a timed, replayed solution rather than the static brute-force solver. */
+export function isMovingLevel(level: Level): boolean {
+  return (
+    level.bodies.some((b) => b.orbit != null) ||
+    level.keys.some((k) => k.orbit != null) ||
+    level.targets.some((t) => t.orbit != null) ||
+    (level.portals?.length ?? 0) > 0
+  );
+}
+
 export const LEVELS: Level[] = [
   // --- Chapter 1: reach the goal, learn gravity (1-3) ---
   {
