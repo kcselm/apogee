@@ -12,6 +12,7 @@ import {
 import { useCallback, useMemo, useState } from "react";
 import { recordResult } from "./campaignStorage";
 import { CampaignCanvas } from "./CampaignCanvas";
+import { starCriteria } from "./ratingText";
 
 interface Props {
   index: number;
@@ -81,6 +82,15 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
           <div className="panel">
             <div className="total">{cleared ? "★".repeat(rating.stars) + "☆".repeat(3 - rating.stars) : "out of launches"}</div>
             <div className="stat">{cleared ? `cleared in ${state.launchesUsed}/${level.par}` : "objective not met"}</div>
+            {cleared && (
+              <ul className="star-criteria">
+                {starCriteria(state).map((c) => (
+                  <li key={c.text} className={c.met ? "met" : "unmet"}>
+                    {c.met ? "★" : "☆"} {c.text}
+                  </li>
+                ))}
+              </ul>
+            )}
             <div className="actions">
               <button onClick={() => onPlay(index)}>Retry</button>
               {cleared && hasNext && <button onClick={() => onPlay(index + 1)}>Next →</button>}

@@ -98,3 +98,6 @@ canvas {
 @media (prefers-reduced-motion: reduce) {
   .screen-fade, .overlay { animation: none; }
 }
+.star-criteria { list-style: none; padding: 0; margin: 0.5rem 0 0; font-size: 0.85rem; text-align: left; }
+.star-criteria .met { color: #ffd54f; }
+.star-criteria .unmet { color: #5c6b8a; }
