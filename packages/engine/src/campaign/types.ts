@@ -63,7 +63,10 @@ export interface Level {
   bounds: { width: number; height: number };
   launchBudget: number;
   objectives: Objective[];
-  starThresholds: { two: number; three: number };
+  /** Optimal known launch count. Stars: 1 = clear, 2 = clear at par,
+   *  3 = par AND inner-ring precision. Provable: CI asserts each level's
+   *  recorded/brute-forced solution clears within par. */
+  par: number;
   portals?: Portal[];
 }
 

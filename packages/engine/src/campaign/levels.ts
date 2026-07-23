@@ -45,21 +45,21 @@ export const LEVELS: Level[] = [
     bodies: [planet(800, 520, 80)],
     keys: [], goal: { pos: { x: 1180, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "1-2", name: "Two Worlds",
     bodies: [planet(620, 360, 64), planet(1040, 640, 72)],
     keys: [], goal: { pos: { x: 1320, y: 360 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "1-3", name: "Slingshot",
     bodies: [planet(760, 500, 96)],
     keys: [], goal: { pos: { x: 700, y: 640 }, radius: 36 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
 
   // --- Chapter 2: blockers (4-6) ---
@@ -68,21 +68,21 @@ export const LEVELS: Level[] = [
     bodies: [blocker(560, 500, 70), planet(1050, 520, 80)],
     keys: [], goal: { pos: { x: 1180, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "2-2", name: "Bent Path",
     bodies: [planet(640, 360, 80), blocker(980, 560, 60)],
     keys: [], goal: { pos: { x: 1300, y: 420 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "2-3", name: "Threading",
     bodies: [blocker(560, 420, 56), blocker(720, 700, 56), planet(1080, 520, 84)],
     keys: [], goal: { pos: { x: 1240, y: 360 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
 
   // --- Chapter 3: collect a key, then reach the goal (7-9) ---
@@ -92,7 +92,7 @@ export const LEVELS: Level[] = [
     keys: [{ pos: { x: 480, y: 300 }, radius: 28 }],
     goal: { pos: { x: 1180, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "3-2", name: "Hidden Key",
@@ -100,7 +100,7 @@ export const LEVELS: Level[] = [
     keys: [{ pos: { x: 760, y: 640 }, radius: 26 }],
     goal: { pos: { x: 1320, y: 360 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "3-3", name: "Key & Guard",
@@ -108,7 +108,7 @@ export const LEVELS: Level[] = [
     keys: [{ pos: { x: 520, y: 280 }, radius: 26 }],
     goal: { pos: { x: 1220, y: 620 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
 
   // --- Chapter 4: hit every target (10-12) ---
@@ -118,7 +118,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: undefined,
     targets: [{ pos: { x: 1120, y: 320 }, radius: 26 }, { pos: { x: 1120, y: 720 }, radius: 26 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "hit-all-targets" }], par: 2,
   },
   {
     id: "4-2", name: "Spread",
@@ -126,7 +126,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: undefined,
     targets: [{ pos: { x: 520, y: 700 }, radius: 24 }, { pos: { x: 1280, y: 360 }, radius: 24 }, { pos: { x: 1300, y: 720 }, radius: 24 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "hit-all-targets" }], par: 2,
   },
   {
     id: "4-3", name: "Guarded Marks",
@@ -134,7 +134,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: undefined,
     targets: [{ pos: { x: 980, y: 300 }, radius: 24 }, { pos: { x: 980, y: 740 }, radius: 24 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "hit-all-targets" }], par: 2,
   },
 
   // --- Chapter 5: combine everything (13-15) ---
@@ -145,7 +145,7 @@ export const LEVELS: Level[] = [
     goal: { pos: { x: 1240, y: 360 }, radius: 38 },
     targets: [{ pos: { x: 1080, y: 720 }, radius: 24 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], starThresholds: { two: 8, three: 14 },
+    objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], par: 2,
   },
   {
     id: "5-2", name: "Tight Squeeze",
@@ -153,7 +153,7 @@ export const LEVELS: Level[] = [
     keys: [{ pos: { x: 520, y: 600 }, radius: 26 }],
     goal: { pos: { x: 1260, y: 360 }, radius: 36 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "5-3", name: "Apogee",
@@ -162,7 +162,7 @@ export const LEVELS: Level[] = [
     goal: { pos: { x: 1360, y: 640 }, radius: 36 },
     targets: [{ pos: { x: 900, y: 280 }, radius: 24 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
-    objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], starThresholds: { two: 9, three: 15 },
+    objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], par: 2,
   },
 
   // --- Chapter 6: orbiting moons, reach the goal (16-18) ---
@@ -171,21 +171,21 @@ export const LEVELS: Level[] = [
     bodies: [planet(800, 520, 70), moon(800, 520, 34, 200, 0, 1)],
     keys: [], goal: { pos: { x: 1250, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "6-2", name: "Slingshot Tide",
     bodies: [planet(760, 500, 80), moon(760, 500, 30, 190, 0.5, 1)],
     keys: [], goal: { pos: { x: 700, y: 720 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "6-3", name: "Twin Moons",
     bodies: [planet(820, 500, 64), moon(820, 500, 28, 160, 0, 1), moon(820, 500, 28, 160, 0.5, -1)],
     keys: [], goal: { pos: { x: 1300, y: 520 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
 
   // --- Chapter 7: moons meet blockers/keys/targets (19-21) ---
@@ -194,7 +194,7 @@ export const LEVELS: Level[] = [
     bodies: [blocker(560, 500, 60), planet(1050, 520, 76), moon(1050, 520, 30, 170, 0, 1)],
     keys: [], goal: { pos: { x: 1230, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "7-2", name: "Keyed Orbit",
@@ -202,7 +202,7 @@ export const LEVELS: Level[] = [
     keys: [{ pos: { x: 820, y: 520 }, radius: 26, orbit: makeOrbit({ x: 820, y: 520 }, 210, 0, 1) }],
     goal: { pos: { x: 1250, y: 360 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "7-3", name: "Moving Marks",
@@ -213,7 +213,7 @@ export const LEVELS: Level[] = [
       { pos: { x: 760, y: 420 }, radius: 24, orbit: makeOrbit({ x: 760, y: 420 }, 170, 0, 1) },
     ],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "hit-all-targets" }], par: 1,
   },
 
   // --- Chapter 8: wormholes, reach the goal (22-24) ---
@@ -223,7 +223,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: { pos: { x: 1360, y: 300 }, radius: 40 }, targets: [],
     portals: [makePortal(520, 470, 32, 200, 1), makePortal(1150, 360, 32, 340, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "8-2", name: "Bent Passage",
@@ -231,7 +231,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: { pos: { x: 1360, y: 640 }, radius: 38 }, targets: [],
     portals: [makePortal(760, 560, 30, 160, 1), makePortal(1200, 420, 30, 20, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "8-3", name: "Redirect",
@@ -239,7 +239,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: { pos: { x: 1150, y: 720 }, radius: 40 }, targets: [],
     portals: [makePortal(560, 560, 30, 120, 1), makePortal(1150, 260, 30, 90, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
 
   // --- Chapter 9: wormholes meet keys/targets/blockers (25-27) ---
@@ -250,7 +250,7 @@ export const LEVELS: Level[] = [
     goal: { pos: { x: 1360, y: 300 }, radius: 38 }, targets: [],
     portals: [makePortal(1000, 560, 30, 160, 1), makePortal(1280, 360, 30, 10, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "9-2", name: "Split Marks",
@@ -259,7 +259,7 @@ export const LEVELS: Level[] = [
     targets: [{ pos: { x: 1300, y: 700 }, radius: 24 }, { pos: { x: 1000, y: 300 }, radius: 24 }],
     portals: [makePortal(560, 360, 30, 150, 1), makePortal(1180, 700, 30, 330, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "hit-all-targets" }], par: 2,
   },
   {
     id: "9-3", name: "Gauntlet Gate",
@@ -267,7 +267,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: { pos: { x: 1360, y: 560 }, radius: 36 }, targets: [],
     portals: [makePortal(520, 560, 28, 140, 1), makePortal(1240, 400, 28, 20, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 6, three: 11 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
 
   // --- Chapter 10: everything together (28-30) ---
@@ -278,7 +278,7 @@ export const LEVELS: Level[] = [
     targets: [{ pos: { x: 1300, y: 300 }, radius: 24 }, { pos: { x: 1000, y: 720 }, radius: 24 }],
     portals: [makePortal(520, 340, 28, 150, 1), makePortal(1180, 300, 28, 20, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
-    objectives: [{ kind: "hit-all-targets" }], starThresholds: { two: 8, three: 14 },
+    objectives: [{ kind: "hit-all-targets" }], par: 1,
   },
   {
     id: "10-2", name: "Clockwork Lock",
@@ -287,7 +287,7 @@ export const LEVELS: Level[] = [
     goal: { pos: { x: 1320, y: 300 }, radius: 36 }, targets: [],
     portals: [makePortal(560, 640, 28, 120, 1), makePortal(1220, 360, 28, 20, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
-    objectives: [{ kind: "reach-goal" }], starThresholds: { two: 8, three: 14 },
+    objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "10-3", name: "Event Horizon",
@@ -297,6 +297,6 @@ export const LEVELS: Level[] = [
     targets: [{ pos: { x: 980, y: 280 }, radius: 24 }],
     portals: [makePortal(560, 300, 26, 140, 1), makePortal(1180, 760, 26, 340, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 7,
-    objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], starThresholds: { two: 9, three: 15 },
+    objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], par: 2,
   },
 ];

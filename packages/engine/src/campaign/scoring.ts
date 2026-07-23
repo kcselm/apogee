@@ -1,5 +1,4 @@
 import { RINGS } from "../scoring";
-import { LAUNCH_BONUS } from "./constants";
 import { evaluateObjectives } from "./objectives";
 import type { CampaignLevelState } from "./types";
 
@@ -11,13 +10,11 @@ export function precisionPoints(dist: number): number {
   return 0;
 }
 
-export function starRating(
-  state: CampaignLevelState,
-): { stars: 0 | 1 | 2 | 3; levelScore: number } {
-  const launchesLeft = state.level.launchBudget - state.launchesUsed;
-  const levelScore = launchesLeft * LAUNCH_BONUS + state.bestPrecision;
-  if (!evaluateObjectives(state).cleared) return { stars: 0, levelScore };
-  const { two, three } = state.level.starThresholds;
-  const stars = levelScore >= three ? 3 : levelScore >= two ? 2 : 1;
-  return { stars, levelScore };
+/** Finish / efficient / perfect: 1★ = clear, 2★ = clear within par launches,
+ *  3★ = 2★ plus inner-ring precision (bestPrecision ≥ 3, ≤30 units at first
+ *  sensor contact). */
+export function starRating(state: CampaignLevelState): { stars: 0 | 1 | 2 | 3 } {
+  if (!evaluateObjectives(state).cleared) return { stars: 0 };
+  if (state.launchesUsed > state.level.par) return { stars: 1 };
+  return { stars: state.bestPrecision >= 3 ? 3 : 2 };
 }

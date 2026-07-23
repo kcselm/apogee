@@ -38,6 +38,7 @@ describe("authored levels", () => {
       const solution = findSolution(lvl);
       expect(solution, `level ${lvl.id} is unsolvable — adjust its layout`).not.toBeNull();
       expect(solution!.length, lvl.id).toBeLessThanOrEqual(lvl.launchBudget);
+      expect(solution!.length, `${lvl.id} par is aspirational`).toBeLessThanOrEqual(lvl.par);
     }
   });
 
@@ -47,6 +48,7 @@ describe("authored levels", () => {
       const seq = SOLUTIONS[lvl.id];
       expect(seq, `no stored solution for ${lvl.id} — run SOLVE=1 discover-solutions`).toBeDefined();
       expect(seq!.length, `${lvl.id} solution exceeds budget`).toBeLessThanOrEqual(lvl.launchBudget);
+      expect(seq!.length, `${lvl.id} par is aspirational`).toBeLessThanOrEqual(lvl.par);
       let s = createLevel(lvl);
       for (const input of seq!) s = simulateCampaignLaunch(s, input).state;
       expect(evaluateObjectives(s).cleared, `stored solution for ${lvl.id} no longer clears`).toBe(true);

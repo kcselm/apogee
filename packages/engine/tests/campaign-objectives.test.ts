@@ -14,7 +14,7 @@ function level(partial: Partial<Level>): Level {
     bounds: { width: 1600, height: 1000 },
     launchBudget: 3,
     objectives: [],
-    starThresholds: { two: 10, three: 20 },
+    par: 2,
     ...partial,
   };
 }

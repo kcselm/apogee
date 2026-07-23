@@ -1,6 +1,5 @@
 export * from "./types";
 export { BOARD_PERIOD } from "./constants";
-export { LAUNCH_BONUS } from "./constants";
 export { PORTAL_COOLDOWN, PORTAL_EXIT_MARGIN } from "./constants";
 export { advanceOrbit, makeOrbit, orbitOffsetAt, orbitPositionAt } from "./orbit";
 export { createLevel, simulateCampaignLaunch } from "./simulate";

@@ -6,7 +6,7 @@ function level(partial: Partial<Level> = {}): Level {
   return {
     id: "t", name: "t", bodies: [], keys: [], goal: { pos: { x: 1, y: 1 }, radius: 60 },
     targets: [], launchPos: { x: 0, y: 0 }, bounds: { width: 1600, height: 1000 },
-    launchBudget: 3, objectives: [{ kind: "reach-goal" }], starThresholds: { two: 8, three: 13 },
+    launchBudget: 4, par: 2, objectives: [{ kind: "reach-goal" }],
     ...partial,
   };
 }
@@ -29,19 +29,34 @@ describe("precisionPoints", () => {
 });
 
 describe("starRating", () => {
-  it("is 0 stars when not cleared", () => {
-    expect(starRating(state(level())).stars).toBe(0);
+  it("is 0 stars when not cleared, regardless of launches and precision", () => {
+    expect(starRating(state(level(), { launchesUsed: 1, bestPrecision: 5 })).stars).toBe(0);
   });
 
-  it("clearing at all earns at least 1 star", () => {
-    const s = state(level(), { goalReached: true, launchesUsed: 3, bestPrecision: 0 });
+  it("clearing over par earns exactly 1 star even with perfect precision", () => {
+    const s = state(level(), { goalReached: true, launchesUsed: 3, bestPrecision: 5 });
     expect(starRating(s).stars).toBe(1);
   });
 
-  it("efficiency + precision push to 2 and 3 stars via thresholds", () => {
-    const s3 = state(level(), { goalReached: true, launchesUsed: 1, bestPrecision: 5 });
-    expect(starRating(s3)).toEqual({ stars: 3, levelScore: 15 });
-    const s2 = state(level(), { goalReached: true, launchesUsed: 2, bestPrecision: 3 });
-    expect(starRating(s2)).toEqual({ stars: 2, levelScore: 8 });
+  it("clearing at par with outer-ring precision earns exactly 2 stars", () => {
+    const s = state(level(), { goalReached: true, launchesUsed: 2, bestPrecision: 1 });
+    expect(starRating(s).stars).toBe(2);
+  });
+
+  it("clearing under par still counts as par (2 stars without precision)", () => {
+    const s = state(level(), { goalReached: true, launchesUsed: 1, bestPrecision: 0 });
+    expect(starRating(s).stars).toBe(2);
+  });
+
+  it("par + inner ring (precision 3) earns 3 stars; bullseye (5) also does", () => {
+    const inner = state(level(), { goalReached: true, launchesUsed: 2, bestPrecision: 3 });
+    expect(starRating(inner).stars).toBe(3);
+    const bull = state(level(), { goalReached: true, launchesUsed: 2, bestPrecision: 5 });
+    expect(starRating(bull).stars).toBe(3);
+  });
+
+  it("precision without par caps at 1 star", () => {
+    const s = state(level(), { goalReached: true, launchesUsed: 3, bestPrecision: 3 });
+    expect(starRating(s).stars).toBe(1);
   });
 });

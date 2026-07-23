@@ -9,7 +9,7 @@ function base(partial: Partial<Level>): Level {
   return {
     id: "t", name: "t", bodies: [], keys: [], goal: undefined, targets: [],
     launchPos: { x: 80, y: 500 }, bounds: BOUNDS, launchBudget: 3,
-    objectives: [], starThresholds: { two: 8, three: 13 }, ...partial,
+    objectives: [], par: 2, ...partial,
   };
 }
 

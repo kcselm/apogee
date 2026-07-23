@@ -18,7 +18,7 @@ const LEVEL: Level = {
   bounds: { width: 1600, height: 1000 },
   launchBudget: 3,
   objectives: [{ kind: "reach-goal" }],
-  starThresholds: { two: 6, three: 11 },
+  par: 2,
 };
 
 const INPUTS = [
@@ -66,7 +66,7 @@ const MOVING_LEVEL: Level = {
   bounds: { width: 1600, height: 1000 },
   launchBudget: 3,
   objectives: [{ kind: "reach-goal" }],
-  starThresholds: { two: 6, three: 11 },
+  par: 2,
 };
 
 const MOVING_INPUTS = [
