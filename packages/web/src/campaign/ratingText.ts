@@ -9,6 +9,6 @@ export function starCriteria(
   return [
     { text: "clear the level", met: true },
     { text: `clear in ${par} launch${par === 1 ? "" : "es"}`, met: state.launchesUsed <= par },
-    { text: "first contact in the inner ring", met: state.bestPrecision >= 3 },
+    { text: "first contact in the inner ring", met: state.launchesUsed <= par && state.bestPrecision >= 3 },
   ];
 }

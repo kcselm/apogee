@@ -32,4 +32,9 @@ describe("starCriteria", () => {
     const solo = starCriteria({ ...state({ launchesUsed: 1 }), level: { ...state({}).level, par: 1 } });
     expect(solo[1]!.text).toBe("clear in 1 launch");
   });
+
+  it("precision does not light the 3-star row when par was missed", () => {
+    const rows = starCriteria(state({ launchesUsed: 4, bestPrecision: 5 }));
+    expect(rows.map((r) => r.met)).toEqual([true, false, false]);
+  });
 });
