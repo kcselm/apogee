@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { PORTAL_COOLDOWN } from "../src/campaign/constants";
 import { makePortal, portalExitRotation, rotateVec } from "../src/campaign/portal";
+import { createLevel, simulateCampaignLaunch } from "../src/campaign/simulate";
+import type { Level } from "../src/campaign/types";
 
 describe("portal transform", () => {
   it("head-on entry exits straight along the far portal's facing", () => {
@@ -26,5 +29,50 @@ describe("portal transform", () => {
     expect(p.facing.x).toBeCloseTo(0, 6);
     expect(p.facing.y).toBeCloseTo(1, 6);
     expect(Math.hypot(p.facing.x, p.facing.y)).toBeCloseTo(1, 6);
+  });
+});
+
+/** Steps at which the probe teleported = trace frames where it moved >100 units. */
+function jumpSteps(trace: { x: number; y: number }[][]): number[] {
+  const out: number[] = [];
+  for (let i = 1; i < trace.length; i++) {
+    const a = trace[i - 1]![0]!;
+    const b = trace[i]![0]!;
+    if (Math.hypot(b.x - a.x, b.y - a.y) > 100) out.push(i);
+  }
+  return out;
+}
+
+describe("portal re-entry cooldown", () => {
+  // Empty space, two mouths both facing -x. A probe flying +x enters A head-on,
+  // exits B travelling +x INTO B's own disc (exit rotation maps -x → +x), and
+  // would instantly re-teleport every step without the guard. At drag 100
+  // (300 u/s = 5 u/step) it needs ~14 steps to cross B's 35-unit contact
+  // reach, so the cooldown expires mid-disc and a legitimate re-teleport
+  // fires — the gap between jumps is exactly the guard window, never 1.
+  const LEVEL: Level = {
+    id: "cd", name: "cd", bodies: [], keys: [],
+    goal: { pos: { x: 1500, y: 900 }, radius: 30 }, targets: [],
+    launchPos: { x: 100, y: 500 }, bounds: { width: 1600, height: 1000 },
+    launchBudget: 1, par: 1, objectives: [{ kind: "reach-goal" }],
+    portals: [makePortal(600, 500, 30, 180, 1), makePortal(1100, 500, 30, 180, 0)],
+  };
+
+  it("never re-teleports within the cooldown window", () => {
+    const { trace } = simulateCampaignLaunch(createLevel(LEVEL), { dx: 100, dy: 0 }, 400);
+    const jumps = jumpSteps(trace);
+    expect(jumps.length).toBeGreaterThanOrEqual(2);
+    for (let i = 1; i < jumps.length; i++) {
+      expect(jumps[i]! - jumps[i - 1]!).toBeGreaterThan(PORTAL_COOLDOWN);
+    }
+  });
+
+  it("does re-teleport once the cooldown expires while still inside a mouth", () => {
+    const { trace } = simulateCampaignLaunch(createLevel(LEVEL), { dx: 100, dy: 0 }, 400);
+    const jumps = jumpSteps(trace);
+    // The probe crosses B's disc slower than the guard window, so at least one
+    // consecutive pair of jumps sits exactly at the first legal step.
+    const gaps = jumps.slice(1).map((s, i) => s - jumps[i]!);
+    expect(Math.min(...gaps)).toBe(PORTAL_COOLDOWN + 1);
   });
 });

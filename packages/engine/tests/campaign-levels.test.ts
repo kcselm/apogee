@@ -28,6 +28,7 @@ describe("authored levels", () => {
         expect(p.link, `${lvl.id} portal ${i} link`).toBeGreaterThanOrEqual(0);
         expect(p.link, `${lvl.id} portal ${i} link`).toBeLessThan(ps.length);
         expect(ps[p.link]!.link, `${lvl.id} portal ${i} pairing`).toBe(i);
+        expect(p.link, `${lvl.id} portal ${i} self-link`).not.toBe(i);
       });
     }
   });
