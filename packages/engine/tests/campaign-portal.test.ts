@@ -47,15 +47,16 @@ describe("portal re-entry cooldown", () => {
   // Empty space, two mouths both facing -x. This is a double-bounce: since both
   // portals share the same facing, each traversal flips the probe's velocity and
   // drops it at a fixed anchor next to the OTHER portal (exit.pos + facing *
-  // reach) — it doesn't cross straight through.
+  // (reach + PORTAL_EXIT_MARGIN)) — it doesn't cross straight through.
   //   Jump 1 (~step 92): probe flying +x enters A head-on, exits along B.facing
   //     = -x — AWAY from B, back toward A. Not cooldown-relevant.
   //   Jump 2 (~step 178, gap 86): cooldown had long since expired; ~86 steps of
   //     plain -x travel later, the probe re-enters A from the far side (tail-on).
-  //   Jump 3 (~step 185, gap 7): that entry exits along B.facing again, but this
-  //     time the anchor point sits ~2 units inside B's own disc and the probe is
-  //     moving +x, i.e. INTO B's own disc. Without the guard this would
-  //     re-teleport next step; PORTAL_COOLDOWN=6 blocks steps 179-184 while the
+  //   Jump 3 (~step 185, gap 7): jump 2's tail-on entry exited at B's anchor
+  //     moving +x (velocity flipped, opposite B.facing) — the anchor sits ~2
+  //     units OUTSIDE B's 35-unit contact reach (that gap is PORTAL_EXIT_MARGIN),
+  //     so the very next step carries the probe into it. Without the guard this
+  //     would re-teleport next step; PORTAL_COOLDOWN=6 blocks steps 179-184 while the
   //     probe drifts across B's 35-unit contact reach at drag 100 (300 u/s =
   //     5 u/step), so the legitimate re-teleport fires at the first legal step —
   //     gap exactly PORTAL_COOLDOWN + 1, never 1.
