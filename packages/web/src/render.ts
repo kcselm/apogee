@@ -404,7 +404,7 @@ function drawProbe(
 
 function drawBursts(
   ctx: CanvasRenderingContext2D,
-  bursts: { x: number; y: number; start: number; kind: Burst["kind"] }[],
+  bursts: Burst[],
   time: number,
 ): void {
   for (const b of bursts) {

@@ -35,7 +35,7 @@ export interface UseBoardCanvas {
   adapter: BoardAdapter;
   worldWidth: number;
   worldHeight: number;
-  /** Frame index at which the level was cleared; a clear burst is drawn there. */
+  /** Frame index at which the level was cleared; the clear burst fires once when playback reaches or passes that frame. */
   clearAt: number | null;
 }
 
@@ -59,6 +59,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
   const burstsRef = useRef<Burst[]>([]);
   const frameIdxRef = useRef(0);
   const prevStateRef = useRef<ProbeFrame["state"]>("flying");
+  const clearFiredRef = useRef(false);
   // Board clock: free-runs while aiming; during anim, tick = animStart + frameIdx.
   const tickRef = useRef(0);
   const lastLaunchTickRef = useRef(0);
@@ -79,6 +80,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     frameIdxRef.current = 0;
     animStartTickRef.current = lastLaunchTickRef.current;
     prevStateRef.current = "flying";
+    clearFiredRef.current = false;
     clearTrail(trailRef.current);
   }
 
@@ -130,8 +132,11 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
             }
             prevStateRef.current = pf.state;
           }
-          if (motion && clearAtRef.current !== null && frameIdxRef.current === clearAtRef.current) {
-            burstsRef.current.push({ x: pf.x, y: pf.y, start: time, kind: "clear" });
+          const clearAt = clearAtRef.current;
+          if (motion && clearAt !== null && !clearFiredRef.current && frameIdxRef.current >= clearAt) {
+            clearFiredRef.current = true;
+            const at = anim[clearAt]?.[adapter.probeIndex] ?? pf;
+            burstsRef.current.push({ x: at.x, y: at.y, start: time, kind: "clear" });
           }
         }
         adapter.draw(ctx, {
