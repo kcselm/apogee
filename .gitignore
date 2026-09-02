@@ -3,3 +3,4 @@ dist/
 *.local
 .superpowers/
 .playwright-mcp/
+.claude/worktrees/
