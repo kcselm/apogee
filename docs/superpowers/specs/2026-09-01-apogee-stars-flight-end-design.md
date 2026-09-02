@@ -105,7 +105,7 @@ probes come from the complete sim, as today) but hands the board a trimmed trace
 // packages/web/src/space/playback.ts (pure; fun-debt Task 6 creates this module)
 export const CLEAR_TAIL = 36;
 export function trimToClear<T>(trace: T[], clearedAtStep: number | null, tail = CLEAR_TAIL): T[]
-  // clearedAtStep === null → trace unchanged; else trace.slice(0, min(len, clearedAtStep + tail))
+  // clearedAtStep === null → trace unchanged; else trace.slice(0, min(len, clearedAtStep + 1 + tail))
 ```
 
 The board plays the trimmed trace; `onAnimDone` fires at its end; the level-over panel appears

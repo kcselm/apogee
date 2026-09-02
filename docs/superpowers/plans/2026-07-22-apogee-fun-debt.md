@@ -602,7 +602,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 ### Task 6: Fixed-rate playback clock (pure module + hook integration)
 
 **Files:**
-- Create: `packages/web/src/space/playback.ts`
+- Extend (exists since the stars-flight-end sprint with CLEAR_TAIL/trimToClear — do not overwrite): `packages/web/src/space/playback.ts`
 - Test: `packages/web/tests/space/playback.test.ts`
 - Modify: `packages/web/src/space/useBoardCanvas.ts`
 
@@ -797,7 +797,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
 
 - [ ] **Step 1: Implement skip + hint in the hook**
 
-In `packages/web/src/space/useBoardCanvas.ts`:
+In `packages/web/src/space/useBoardCanvas.ts`: The clear burst in the anim branch is a once-flagged crossing check (clearFiredRef, >= clearAt); keep it after the consume loop so a skip or multi-step catch-up still fires it.
 
 1. Add a ref: `const animStartTimeRef = useRef<number | null>(null);` and reset it in the new-animation detection block: `animStartTimeRef.current = null;`.
 2. Inside the effect, define skip (after `computePreview`):
