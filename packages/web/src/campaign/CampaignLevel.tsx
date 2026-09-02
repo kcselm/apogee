@@ -10,6 +10,7 @@ import {
   type ProbeFrame,
 } from "@apogee/engine";
 import { useCallback, useMemo, useState } from "react";
+import { trimToClear } from "../space/playback";
 import { recordResult } from "./campaignStorage";
 import { CampaignCanvas } from "./CampaignCanvas";
 import { starCriteria } from "./ratingText";
@@ -23,6 +24,8 @@ interface Props {
 interface PendingAnim {
   trace: ProbeFrame[][];
   next: CampaignLevelState;
+  /** Frame at which the level was cleared (a burst is drawn there), or null. */
+  clearAt: number | null;
 }
 
 export function CampaignLevel({ index, onExit, onPlay }: Props) {
@@ -33,8 +36,8 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
 
   const handleLaunch = useCallback(
     (input: LaunchInput) => {
-      const { state: next, trace } = simulateCampaignLaunch(state, input);
-      setAnim({ trace, next });
+      const { state: next, trace, clearedAtStep } = simulateCampaignLaunch(state, input);
+      setAnim({ trace: trimToClear(trace, clearedAtStep), next, clearAt: clearedAtStep });
     },
     [state],
   );
