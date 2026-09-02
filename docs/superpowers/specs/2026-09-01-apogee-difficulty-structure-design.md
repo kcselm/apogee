@@ -87,7 +87,7 @@ re-measured *before* any action once fun-debt relayouts land.
 | 4-1 Double Tap | par 2 | teach | measure `progress %`, then act |
 | 4-2 Spread | par 2 | twist | measure, then act |
 | 4-3 Guarded Marks | par 2 | test | measure, then act |
-| 5-1 Key & Marks | par 2 | teach | measure, then act |
+| 5-1 Key & Marks | par 2 | teach | measure, then act — sprint-1 check: every clearing 2nd launch is 3★ once the reference 1st launch scores a bullseye (sticky-max precision across sensors); consider min-over-sensors precision or a layout where the first pass cannot be a bullseye |
 | 5-2 Tight Squeeze | 0.46 % | twist | loosen slightly |
 | 5-3 Apogee | par 2 / ref 29 s | test | relayout so the reference flight ≤ 12 s |
 | 6-1 – 6-3 | 1.9 / 5.2 / 1.7 % | teach / twist / test | re-measure after relayouts; expect 6-2 and 6-3 to need tightening |
@@ -96,11 +96,15 @@ re-measured *before* any action once fun-debt relayouts land.
 | 7-3 Moving Marks | 0.24 % | test | keep |
 | 8-1 – 8-3 | 1.5 / 1.5 / 1.9 % | teach / twist / test | re-measure; 8-1 may need loosening, 8-3 tightening |
 | 9-1 Portal Key | 0.16 % | teach | loosen |
-| 9-2 Split Marks | par 2 | twist | measure, then act |
+| 9-2 Split Marks | par 2 | twist | measure, then act — sprint-1 check: every clearing 2nd launch is 3★ once the reference 1st launch scores a bullseye (sticky-max precision across sensors); consider min-over-sensors precision or a layout where the first pass cannot be a bullseye |
 | 9-3 Gauntlet Gate | 4.2 % / ref 15 s | test | tighten hard; also shorten the reference flight |
 | 10-1 Convergence | 0.19 % | teach | loosen |
 | 10-2 Clockwork Lock | 0.27 % / ref 45 s | twist | relayout for a direct reference shot; loosen toward 0.7–2 % |
 | 10-3 Event Horizon | par 2 | test | measure, then act |
+
+Sprint-1 sweep (2026-09-02, closest-approach precision, bullseye 3★): every level has at least one
+3★ input at par; 3★ share among clears ranges 0.18–0.77, above the 10–40 % band on 1-1, 2-2, 3-2,
+4-2, 4-3, 5-3, 7-3, 8-1, 9-1, 10-1 — retune per sensor radius in this sprint.
 
 Tuning levers, in order of preference: sensor radius (keys 26–36, targets 22–30, goals 32–44),
 sensor position along the natural arc, blocker position, body radius/mass, launch budget last
