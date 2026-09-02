@@ -159,3 +159,37 @@ describe("closest-approach precision", () => {
     expect(r2.state.launchesUsed).toBe(2);
   });
 });
+
+describe("clearedAtStep", () => {
+  it("is null when the launch does not clear the level", () => {
+    const lvl = base({ goal: { pos: { x: 700, y: 600 }, radius: 30 }, objectives: [{ kind: "reach-goal" }] });
+    const r = simulateCampaignLaunch(createLevel(lvl), { dx: 200, dy: 0 });
+    expect(r.state.goalReached).toBe(false);
+    expect(r.clearedAtStep).toBeNull();
+  });
+
+  it("is the step the goal triggers on a goal-only level, and the trace continues past it", () => {
+    const lvl = base({ goal: { pos: { x: 700, y: 500 }, radius: 30 }, objectives: [{ kind: "reach-goal" }] });
+    const r = simulateCampaignLaunch(createLevel(lvl), { dx: 200, dy: 0 });
+    expect(r.clearedAtStep).toBe(58);
+    expect(r.trace.length).toBeGreaterThan(58 + 36);
+  });
+
+  it("is the step the LAST objective is met on a targets + goal level", () => {
+    const lvl = base({
+      targets: [{ pos: { x: 400, y: 500 }, radius: 20 }],   // triggers at frame 29
+      goal: { pos: { x: 700, y: 500 }, radius: 30 },          // triggers at frame 58
+      objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }],
+    });
+    const r = simulateCampaignLaunch(createLevel(lvl), { dx: 200, dy: 0 });
+    expect(r.events.map((e) => [e.type, e.step])).toEqual([["target", 29], ["goal", 58]]);
+    expect(r.clearedAtStep).toBe(58);
+  });
+
+  it("stays null on a later launch once the level was already cleared", () => {
+    const lvl = base({ goal: { pos: { x: 700, y: 500 }, radius: 30 }, objectives: [{ kind: "reach-goal" }] });
+    const r1 = simulateCampaignLaunch(createLevel(lvl), { dx: 200, dy: 0 });
+    const r2 = simulateCampaignLaunch(r1.state, { dx: 200, dy: 0 });
+    expect(r2.clearedAtStep).toBeNull();
+  });
+});

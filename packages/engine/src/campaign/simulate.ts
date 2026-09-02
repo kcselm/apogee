@@ -2,6 +2,7 @@ import { MAX_SPEED, MAX_STEPS, POWER_SCALE, PROBE_RADIUS } from "../constants";
 import { contacts, integrate, landOn, resolveCollisions, voidCheck } from "../physics";
 import type { LaunchInput, Probe, ProbeFrame, Vec2 } from "../types";
 import { PORTAL_COOLDOWN, PORTAL_EXIT_MARGIN } from "./constants";
+import { allObjectivesMet } from "./objectives";
 import { advanceOrbit, orbitOffsetAt } from "./orbit";
 import { portalExitRotation, rotateVec } from "./portal";
 import { precisionPoints } from "./scoring";
@@ -63,6 +64,15 @@ interface Pass {
   minDist: number;
 }
 
+export interface CampaignLaunchResult {
+  state: CampaignLevelState;
+  trace: ProbeFrame[][];
+  events: SensorEvent[];
+  /** First step (= trace index) at which every objective was met during this
+   *  launch, or null. Lets the UI stop playback once the level is won. */
+  clearedAtStep: number | null;
+}
+
 /**
  * Run one campaign launch to completion (or maxSteps). Pure: returns new state.
  * Extends the daily physics loop with: moving bodies/sensors (orbits), blocker
@@ -73,7 +83,7 @@ export function simulateCampaignLaunch(
   state: CampaignLevelState,
   input: LaunchInput,
   maxSteps: number = MAX_STEPS,
-): { state: CampaignLevelState; trace: ProbeFrame[][]; events: SensorEvent[] } {
+): CampaignLaunchResult {
   const level = state.level;
   const launchTick = input.launchTick ?? 0;
   const len = Math.sqrt(input.dx * input.dx + input.dy * input.dy);
@@ -92,6 +102,10 @@ export function simulateCampaignLaunch(
   const targetsHit = state.targetsHit.slice();
   let goalReached = state.goalReached;
   let bestPrecision = state.bestPrecision;
+
+  // A level cleared on an earlier launch never reports clearedAtStep again.
+  const clearedBefore = allObjectivesMet(level.objectives, state.targetsHit, state.goalReached);
+  let clearedAtStep: number | null = null;
 
   // Precision passes (per launch). Keys carry no precision.
   const targetPass: (Pass | null)[] = level.targets.map(() => null);
@@ -185,6 +199,10 @@ export function simulateCampaignLaunch(
         }
       }
     }
+    if (clearedAtStep === null && !clearedBefore &&
+        allObjectivesMet(level.objectives, targetsHit, goalReached)) {
+      clearedAtStep = step;
+    }
     // 4. Wormholes: teleport a flying probe entering a mouth (with re-entry guard).
     if (portals.length) {
       for (let pi = 0; pi < probes.length; pi++) {
@@ -239,5 +257,6 @@ export function simulateCampaignLaunch(
     },
     trace,
     events,
+    clearedAtStep,
   };
 }

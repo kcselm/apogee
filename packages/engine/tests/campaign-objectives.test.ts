@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateObjectives, isLevelOver } from "../src/campaign/objectives";
+import { allObjectivesMet, evaluateObjectives, isLevelOver } from "../src/campaign/objectives";
 import type { CampaignLevelState, Level } from "../src/campaign/types";
 
 function level(partial: Partial<Level>): Level {
@@ -63,5 +63,25 @@ describe("evaluateObjectives", () => {
     expect(isLevelOver(state(lvl))).toBe(false);
     expect(isLevelOver(state(lvl, { goalReached: true }))).toBe(true);
     expect(isLevelOver(state(lvl, { launchesUsed: 3 }))).toBe(true);
+  });
+});
+
+describe("allObjectivesMet", () => {
+  it("is false with no objectives", () => {
+    expect(allObjectivesMet([], [], true)).toBe(false);
+  });
+  it("reach-goal follows goalReached", () => {
+    expect(allObjectivesMet([{ kind: "reach-goal" }], [], false)).toBe(false);
+    expect(allObjectivesMet([{ kind: "reach-goal" }], [], true)).toBe(true);
+  });
+  it("hit-all-targets needs every target and at least one", () => {
+    expect(allObjectivesMet([{ kind: "hit-all-targets" }], [], false)).toBe(false);
+    expect(allObjectivesMet([{ kind: "hit-all-targets" }], [true, false], false)).toBe(false);
+    expect(allObjectivesMet([{ kind: "hit-all-targets" }], [true, true], false)).toBe(true);
+  });
+  it("combined objectives need both", () => {
+    const both = [{ kind: "hit-all-targets" as const }, { kind: "reach-goal" as const }];
+    expect(allObjectivesMet(both, [true], false)).toBe(false);
+    expect(allObjectivesMet(both, [true], true)).toBe(true);
   });
 });
