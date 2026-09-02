@@ -15,10 +15,16 @@ function state(partial: Partial<CampaignLevelState>): CampaignLevelState {
 }
 
 describe("starCriteria", () => {
-  it("marks all three met for a par + inner-ring clear", () => {
-    const rows = starCriteria(state({ launchesUsed: 2, bestPrecision: 3 }));
+  it("marks all three met for a par + bullseye clear", () => {
+    const rows = starCriteria(state({ launchesUsed: 2, bestPrecision: 5 }));
     expect(rows).toHaveLength(3);
     expect(rows.map((r) => r.met)).toEqual([true, true, true]);
+    expect(rows[2]!.text).toBe("closest approach in the bullseye");
+  });
+
+  it("inner-ring precision at par lights only the first two rows", () => {
+    const rows = starCriteria(state({ launchesUsed: 2, bestPrecision: 3 }));
+    expect(rows.map((r) => r.met)).toEqual([true, true, false]);
   });
 
   it("marks par and precision unmet for a sloppy over-par clear", () => {

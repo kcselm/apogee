@@ -11,10 +11,10 @@ export function precisionPoints(dist: number): number {
 }
 
 /** Finish / efficient / perfect: 1★ = clear, 2★ = clear within par launches,
- *  3★ = 2★ plus inner-ring precision (bestPrecision ≥ 3, ≤30 units at first
- *  sensor contact). */
+ *  3★ = 2★ plus a bullseye pass (bestPrecision ≥ 5: closest approach ≤ 14
+ *  units to a goal/target center while inside its zone). */
 export function starRating(state: CampaignLevelState): { stars: 0 | 1 | 2 | 3 } {
   if (!evaluateObjectives(state).cleared) return { stars: 0 };
   if (state.launchesUsed > state.level.par) return { stars: 1 };
-  return { stars: state.bestPrecision >= 3 ? 3 : 2 };
+  return { stars: state.bestPrecision >= 5 ? 3 : 2 };
 }

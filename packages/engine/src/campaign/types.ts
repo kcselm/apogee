@@ -64,8 +64,8 @@ export interface Level {
   launchBudget: number;
   objectives: Objective[];
   /** Optimal known launch count. Stars: 1 = clear, 2 = clear at par,
-   *  3 = par AND inner-ring precision. Provable: CI asserts each level's
-   *  recorded/brute-forced solution clears within par. */
+   *  3 = par AND a bullseye pass (closest approach ≤ 14 units). Provable: CI
+   *  asserts each level's recorded/brute-forced solution clears within par. */
   par: number;
   portals?: Portal[];
 }

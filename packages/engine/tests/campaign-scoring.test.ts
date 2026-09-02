@@ -48,11 +48,14 @@ describe("starRating", () => {
     expect(starRating(s).stars).toBe(2);
   });
 
-  it("par + inner ring (precision 3) earns 3 stars; bullseye (5) also does", () => {
-    const inner = state(level(), { goalReached: true, launchesUsed: 2, bestPrecision: 3 });
-    expect(starRating(inner).stars).toBe(3);
+  it("par + bullseye (precision 5) earns 3 stars", () => {
     const bull = state(level(), { goalReached: true, launchesUsed: 2, bestPrecision: 5 });
     expect(starRating(bull).stars).toBe(3);
+  });
+
+  it("par + inner ring (precision 3) earns only 2 stars", () => {
+    const inner = state(level(), { goalReached: true, launchesUsed: 2, bestPrecision: 3 });
+    expect(starRating(inner).stars).toBe(2);
   });
 
   it("precision without par caps at 1 star", () => {
