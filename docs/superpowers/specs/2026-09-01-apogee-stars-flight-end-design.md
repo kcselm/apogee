@@ -151,7 +151,8 @@ drop to 2★ — the test asserts clearing, not stars.
 ## Success criteria
 
 1. On every level, at least one aim-grid input at par earns 3★, and on no level does every
-   clearing input earn 3★ (checked with the sprint-5 sweep tool run ad hoc from scratch).
+   clearing input earn 3★ (checked with an ad-hoc sweep from scratch). This sprint changes no
+   layouts: a level that fails the check is recorded in the sprint-5 retune table instead.
 2. No flight plays more than 0.6 s past the clearing contact.
 3. Campaign golden sim fields byte-identical; daily golden untouched; `pnpm test` and
    `pnpm typecheck` green.
