@@ -2,7 +2,7 @@
 
 exports[`campaign golden replay > a fixed level + inputs matches the locked snapshot 1`] = `
 {
-  "bestPrecision": 1,
+  "bestPrecision": 3,
   "cleared": true,
   "goalReached": true,
   "keysCollected": [
@@ -38,7 +38,7 @@ exports[`campaign golden replay > a fixed level + inputs matches the locked snap
 
 exports[`campaign golden replay — moving > a fixed moving level + timed inputs matches the locked snapshot 1`] = `
 {
-  "bestPrecision": 1,
+  "bestPrecision": 3,
   "cleared": true,
   "goalReached": true,
   "probes": [
