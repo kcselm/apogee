@@ -55,6 +55,14 @@ function stepMoving(m: Moving): void {
   m.pos.y = m.orbit.center.y + m.off.y;
 }
 
+/** An open precision pass: the probe that triggered a sensor and its closest
+ *  approach to the center so far. Closed (folded into bestPrecision) when that
+ *  probe leaves the sensor zone or the launch ends. */
+interface Pass {
+  probe: number;
+  minDist: number;
+}
+
 /**
  * Run one campaign launch to completion (or maxSteps). Pure: returns new state.
  * Extends the daily physics loop with: moving bodies/sensors (orbits), blocker
@@ -84,6 +92,13 @@ export function simulateCampaignLaunch(
   const targetsHit = state.targetsHit.slice();
   let goalReached = state.goalReached;
   let bestPrecision = state.bestPrecision;
+
+  // Precision passes (per launch). Keys carry no precision.
+  const targetPass: (Pass | null)[] = level.targets.map(() => null);
+  let goalPass: Pass | null = null;
+  const closePass = (p: Pass): void => {
+    bestPrecision = Math.max(bestPrecision, precisionPoints(p.minDist));
+  };
 
   // Working geometry (positions advance each step when orbiting).
   const bodies = level.bodies.map((b) => ({
@@ -121,7 +136,10 @@ export function simulateCampaignLaunch(
       }
     }
     // 3. Sensors (keys → targets → goal), read at their current positions.
-    for (const probe of probes) {
+    //    Targets and the goal track closest approach while the triggering probe
+    //    stays inside the zone; that minimum becomes the pass's precision.
+    for (let pi = 0; pi < probes.length; pi++) {
+      const probe = probes[pi]!;
       if (probe.state === "lost") continue;
       keyM.forEach((k, i) => {
         if (!keysCollected[i] && within(probe, k.pos.x, k.pos.y, level.keys[i]!.radius + PROBE_RADIUS)) {
@@ -130,17 +148,40 @@ export function simulateCampaignLaunch(
         }
       });
       targetM.forEach((t, i) => {
-        if (!targetsHit[i] && within(probe, t.pos.x, t.pos.y, level.targets[i]!.radius + PROBE_RADIUS)) {
-          targetsHit[i] = true;
-          bestPrecision = Math.max(bestPrecision, precisionPoints(distTo(probe, t.pos.x, t.pos.y)));
-          events.push({ step, type: "target", index: i });
+        const inside = within(probe, t.pos.x, t.pos.y, level.targets[i]!.radius + PROBE_RADIUS);
+        if (!targetsHit[i]) {
+          if (inside) {
+            targetsHit[i] = true;
+            targetPass[i] = { probe: pi, minDist: distTo(probe, t.pos.x, t.pos.y) };
+            events.push({ step, type: "target", index: i });
+          }
+          return;
+        }
+        const pass = targetPass[i];
+        if (!pass || pass.probe !== pi) return;
+        if (inside) {
+          pass.minDist = Math.min(pass.minDist, distTo(probe, t.pos.x, t.pos.y));
+        } else {
+          closePass(pass);
+          targetPass[i] = null;
         }
       });
-      if (level.goal && !goalReached && keysCollected.every(Boolean)) {
-        if (within(probe, level.goal.pos.x, level.goal.pos.y, level.goal.radius + PROBE_RADIUS)) {
-          goalReached = true;
-          bestPrecision = Math.max(bestPrecision, precisionPoints(distTo(probe, level.goal.pos.x, level.goal.pos.y)));
-          events.push({ step, type: "goal", index: 0 });
+      if (level.goal) {
+        const g = level.goal;
+        const inside = within(probe, g.pos.x, g.pos.y, g.radius + PROBE_RADIUS);
+        if (!goalReached) {
+          if (inside && keysCollected.every(Boolean)) {
+            goalReached = true;
+            goalPass = { probe: pi, minDist: distTo(probe, g.pos.x, g.pos.y) };
+            events.push({ step, type: "goal", index: 0 });
+          }
+        } else if (goalPass && goalPass.probe === pi) {
+          if (inside) {
+            goalPass.minDist = Math.min(goalPass.minDist, distTo(probe, g.pos.x, g.pos.y));
+          } else {
+            closePass(goalPass);
+            goalPass = null;
+          }
         }
       }
     }
@@ -179,6 +220,11 @@ export function simulateCampaignLaunch(
     for (const k of keyM) stepMoving(k);
     for (const t of targetM) stepMoving(t);
   }
+  // Launch over: fold any pass still open (probe landed inside the zone, was
+  // lost mid-pass, or hit the step cap) into bestPrecision.
+  for (const p of targetPass) if (p) closePass(p);
+  if (goalPass) closePass(goalPass);
+
   for (const p of probes) if (p.state === "flying") p.state = "lost";
 
   return {

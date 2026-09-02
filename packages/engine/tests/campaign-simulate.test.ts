@@ -95,3 +95,67 @@ describe("simulateCampaignLaunch", () => {
     expect(JSON.stringify(a.state)).toBe(JSON.stringify(b.state));
   });
 });
+
+describe("closest-approach precision", () => {
+  const goalLevel = (gx: number, gy: number, radius = 30): Level =>
+    base({ goal: { pos: { x: gx, y: gy }, radius }, objectives: [{ kind: "reach-goal" }] });
+
+  it("a straight pass through the goal center scores the bullseye (not first contact)", () => {
+    // First contact is at x=670 (30 units out → 3 under the old rule); closest approach is 0.
+    const r = simulateCampaignLaunch(createLevel(goalLevel(700, 500)), { dx: 200, dy: 0 });
+    expect(r.state.goalReached).toBe(true);
+    expect(r.state.bestPrecision).toBe(5);
+    expect(r.events).toEqual([{ step: 58, type: "goal", index: 0 }]); // trigger step unchanged
+  });
+
+  it("a pass 12 units off-center still scores the bullseye", () => {
+    // Old rule: first contact at (670, 500) is 32.3 units out → 1 point.
+    const r = simulateCampaignLaunch(createLevel(goalLevel(700, 512)), { dx: 200, dy: 0 });
+    expect(r.state.bestPrecision).toBe(5);
+  });
+
+  it("a pass 20 units off-center scores the inner ring", () => {
+    const r = simulateCampaignLaunch(createLevel(goalLevel(700, 520)), { dx: 200, dy: 0 });
+    expect(r.state.bestPrecision).toBe(3);
+  });
+
+  it("a graze 33 units off-center scores the outer ring", () => {
+    const r = simulateCampaignLaunch(createLevel(goalLevel(700, 533)), { dx: 200, dy: 0 });
+    expect(r.state.goalReached).toBe(true);
+    expect(r.state.bestPrecision).toBe(1);
+  });
+
+  it("a probe that lands inside a surface goal closes its pass at launch end", () => {
+    // Planet at (800,500) r60: the probe snaps to (735,500). Goal center (735,520) → 20 units → 3.
+    const lvl = base({
+      bodies: [{ pos: { x: 800, y: 500 }, radius: 60, mass: 3600, kind: "planet" }],
+      goal: { pos: { x: 735, y: 520 }, radius: 30 },
+      objectives: [{ kind: "reach-goal" }],
+    });
+    const r = simulateCampaignLaunch(createLevel(lvl), { dx: 200, dy: 0 });
+    expect(r.state.probes[0]!.state).toBe("landed");
+    expect(r.state.probes[0]!.pos.x).toBeCloseTo(735, 6);
+    expect(r.state.bestPrecision).toBe(3);
+  });
+
+  it("each target crossed in one flight gets its own pass; bestPrecision is the max", () => {
+    // Target 0 at (400,520) r20: closest 20 → 3. Target 1 at (700,512) r20: closest 12 → 5.
+    const lvl = base({
+      targets: [{ pos: { x: 400, y: 520 }, radius: 20 }, { pos: { x: 700, y: 512 }, radius: 20 }],
+      objectives: [{ kind: "hit-all-targets" }],
+    });
+    const r = simulateCampaignLaunch(createLevel(lvl), { dx: 200, dy: 0 });
+    expect(r.state.targetsHit).toEqual([true, true]);
+    expect(r.state.bestPrecision).toBe(5);
+    expect(r.events.map((e) => e.index)).toEqual([0, 1]);
+  });
+
+  it("a reached goal never re-triggers, and a later launch cannot lower bestPrecision", () => {
+    const r1 = simulateCampaignLaunch(createLevel(goalLevel(700, 512)), { dx: 200, dy: 0 });
+    expect(r1.state.bestPrecision).toBe(5);
+    const r2 = simulateCampaignLaunch(r1.state, { dx: 200, dy: 0 });
+    expect(r2.events).toEqual([]);
+    expect(r2.state.bestPrecision).toBe(5);
+    expect(r2.state.launchesUsed).toBe(2);
+  });
+});
