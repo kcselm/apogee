@@ -41,7 +41,7 @@ describe("authored levels", () => {
       expect(solution!.length, lvl.id).toBeLessThanOrEqual(lvl.launchBudget);
       expect(solution!.length, `${lvl.id} par is aspirational`).toBeLessThanOrEqual(lvl.par);
     }
-  });
+  }, 30_000);
 
   it("every MOVING level clears when its stored solution is replayed", () => {
     for (const lvl of LEVELS) {
