@@ -35,6 +35,8 @@ export interface UseBoardCanvas {
   adapter: BoardAdapter;
   worldWidth: number;
   worldHeight: number;
+  /** Frame index at which the level was cleared; a clear burst is drawn there. */
+  clearAt: number | null;
 }
 
 function toWorld(
@@ -64,6 +66,8 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
 
   // Refs kept fresh every render so the persistent loop reads current values.
   const animRef = useRef(opts.anim);
+  const clearAtRef = useRef(opts.clearAt);
+  clearAtRef.current = opts.clearAt;
   const adapterRef = useRef(opts.adapter);
   const cbRef = useRef({ onLaunch: opts.onLaunch, onAnimDone: opts.onAnimDone, disabled: opts.disabled });
   adapterRef.current = opts.adapter;
@@ -125,6 +129,9 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
               });
             }
             prevStateRef.current = pf.state;
+          }
+          if (motion && clearAtRef.current !== null && frameIdxRef.current === clearAtRef.current) {
+            burstsRef.current.push({ x: pf.x, y: pf.y, start: time, kind: "clear" });
           }
         }
         adapter.draw(ctx, {

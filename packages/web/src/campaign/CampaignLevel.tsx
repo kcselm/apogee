@@ -77,6 +77,7 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
         state={state}
         disabled={over || anim !== null}
         anim={anim?.trace ?? null}
+        clearAt={anim?.clearAt ?? null}
         onLaunch={handleLaunch}
         onAnimDone={handleAnimDone}
       />

@@ -13,14 +13,16 @@ interface Props {
   state: CampaignLevelState;
   disabled: boolean;
   anim: ProbeFrame[][] | null;
+  clearAt: number | null;
   onLaunch: (input: LaunchInput) => void;
   onAnimDone: () => void;
 }
 
-export function CampaignCanvas({ state, disabled, anim, onLaunch, onAnimDone }: Props) {
+export function CampaignCanvas({ state, disabled, anim, clearAt, onLaunch, onAnimDone }: Props) {
   const canvasRef = useBoardCanvas({
     disabled,
     anim,
+    clearAt,
     onLaunch,
     onAnimDone,
     worldWidth: WORLD_WIDTH,

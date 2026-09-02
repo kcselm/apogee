@@ -3,7 +3,7 @@ export interface Burst {
   x: number;
   y: number;
   start: number; // ms (loop time) when the burst began
-  kind: "land" | "lost";
+  kind: "land" | "lost" | "clear";
 }
 
 /** Burst lifetime in ms. */

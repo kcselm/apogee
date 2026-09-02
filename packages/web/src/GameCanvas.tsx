@@ -21,6 +21,7 @@ export function GameCanvas({ game, disabled, anim, onLaunch, onAnimDone }: Props
   const canvasRef = useBoardCanvas({
     disabled,
     anim,
+    clearAt: null,
     onLaunch,
     onAnimDone,
     worldWidth: WORLD_WIDTH,
