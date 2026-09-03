@@ -78,6 +78,7 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
         disabled={over || anim !== null}
         anim={anim?.trace ?? null}
         clearAt={anim?.clearAt ?? null}
+        padPulse={false}
         onLaunch={handleLaunch}
         onAnimDone={handleAnimDone}
       />

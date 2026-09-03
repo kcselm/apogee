@@ -11,11 +11,12 @@ interface Props {
   game: GameState;
   disabled: boolean;
   anim: ProbeFrame[][] | null;
+  padPulse: boolean;
   onLaunch: (input: LaunchInput) => void;
   onAnimDone: () => void;
 }
 
-export function GameCanvas({ game, disabled, anim, onLaunch, onAnimDone }: Props) {
+export function GameCanvas({ game, disabled, anim, padPulse, onLaunch, onAnimDone }: Props) {
   const canvasRef = useBoardCanvas({
     disabled,
     anim,
@@ -35,6 +36,7 @@ export function GameCanvas({ game, disabled, anim, onLaunch, onAnimDone }: Props
           bursts: o.bursts,
           time: o.time,
           animate: o.animate,
+          padPulse,
         }),
     },
   });

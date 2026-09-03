@@ -34,6 +34,57 @@ const PAD_RADIUS = 14;
 const AIM_TICK = 18;
 
 /**
+ * Drawn probe radius. The engine's PROBE_RADIUS (5) remains the collision
+ * radius; this is visual only, so a landed probe reads at arm's length on a
+ * phone. Never use this for hit tests.
+ */
+const PROBE_DRAW_RADIUS = 8;
+/** Radius of the ring around a landed probe. */
+const LANDED_RING_RADIUS = 14;
+
+/**
+ * The launch pad, drawn as a solid emitter: filled core, ring, glow, and a
+ * short tick toward +x (every level's goals lie downrange). Before this the pad
+ * was an outline ring, which shared a silhouette with the goal and left a
+ * first-time player with nothing to aim from. `pulse` breathes the halo until
+ * the player's first launch ever; callers pass false under reduced motion.
+ */
+function drawPad(
+  ctx: CanvasRenderingContext2D,
+  pos: { x: number; y: number },
+  pulse: boolean,
+  time: number,
+): void {
+  ctx.save();
+  if (pulse) {
+    const breath = 1 + 0.18 * Math.sin(time * 0.004);
+    ctx.globalAlpha = 0.26;
+    ctx.fillStyle = COLORS.pad;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, PAD_RADIUS * 1.9 * breath, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  ctx.shadowColor = "rgba(128, 203, 196, 0.85)";
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = COLORS.pad;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = COLORS.pad;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(pos.x, pos.y, PAD_RADIUS, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(pos.x + PAD_RADIUS, pos.y);
+  ctx.lineTo(pos.x + PAD_RADIUS + 10, pos.y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
  * The aim gesture. The rubber band runs from the press point to the pointer
  * (capped at MAX_PULL, so it shows what the engine will do), so the finger
  * sees its own gesture wherever it pressed. The tick at the pad shows the
@@ -95,6 +146,8 @@ export interface RenderView {
   time: number;
   /** Whether ambient motion is enabled this frame. */
   animate: boolean;
+  /** Breathe the pad halo (the player has never launched). */
+  padPulse: boolean;
 }
 
 const clamp = (v: number, lo: number, hi: number): number => (v < lo ? lo : v > hi ? hi : v);
@@ -410,7 +463,7 @@ function drawTrail(
     if (dx * dx + dy * dy <= TELEPORT_GAP2) {
       const a = i / trail.length;
       ctx.strokeStyle = `rgba(180,210,255,${a * 0.5})`;
-      ctx.lineWidth = a * PROBE_RADIUS * 1.2;
+      ctx.lineWidth = a * PROBE_DRAW_RADIUS * 1.2;
       ctx.beginPath();
       ctx.moveTo(prev.x, prev.y);
       ctx.lineTo(p.x, p.y);
@@ -430,11 +483,20 @@ function drawProbe(
 ): void {
   const pulse = animate && landed ? 1 + 0.15 * Math.sin(time * 0.006) : 1;
   ctx.save();
+  if (landed) {
+    ctx.globalAlpha = 0.6;
+    ctx.strokeStyle = COLORS.probeLanded;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, LANDED_RING_RADIUS * pulse, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
   ctx.shadowColor = landed ? "rgba(165,214,167,0.9)" : "rgba(200,220,255,0.95)";
-  ctx.shadowBlur = landed ? 12 : 9;
+  ctx.shadowBlur = landed ? 16 : 9;
   ctx.fillStyle = landed ? COLORS.probeLanded : COLORS.probe;
   ctx.beginPath();
-  ctx.arc(x, y, PROBE_RADIUS * pulse, 0, Math.PI * 2);
+  ctx.arc(x, y, PROBE_DRAW_RADIUS * pulse, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -486,11 +548,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
 
   // Launch pad
   const lp = game.system.launchPos;
-  ctx.strokeStyle = COLORS.pad;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(lp.x, lp.y, PAD_RADIUS, 0, Math.PI * 2);
-  ctx.stroke();
+  drawPad(ctx, lp, view.padPulse && view.animate, view.time);
 
   // Aiming: preview path + gesture
   if (view.previewPath && view.previewPath.length > 1) {
@@ -520,6 +578,8 @@ export interface CampaignRenderView {
   bursts: Burst[];
   time: number;
   animate: boolean;
+  /** Breathe the pad halo (the player has never launched). */
+  padPulse: boolean;
   boardTick: number;
 }
 
@@ -648,11 +708,7 @@ export function drawCampaignFrame(
 
   // Launch pad.
   const lp = level.launchPos;
-  ctx.strokeStyle = COLORS.pad;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(lp.x, lp.y, PAD_RADIUS, 0, Math.PI * 2);
-  ctx.stroke();
+  drawPad(ctx, lp, view.padPulse && view.animate, view.time);
 
   // Aiming preview + gesture.
   if (view.previewPath && view.previewPath.length > 1) {

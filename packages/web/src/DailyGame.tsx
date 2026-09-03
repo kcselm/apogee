@@ -61,6 +61,7 @@ export function DailyGame({ onExit }: { onExit: () => void }) {
         game={game}
         disabled={over || anim !== null}
         anim={anim?.trace ?? null}
+        padPulse={false}
         onLaunch={handleLaunch}
         onAnimDone={handleAnimDone}
       />
