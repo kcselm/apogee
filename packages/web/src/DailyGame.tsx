@@ -13,6 +13,7 @@ import { todayString } from "./daily";
 import { loadBest, recordScore } from "./storage";
 import { GameCanvas } from "./GameCanvas";
 import { CountUp } from "./CountUp";
+import { useAimHint } from "./useAimHint";
 
 interface PendingAnim {
   trace: ProbeFrame[][];
@@ -24,13 +25,15 @@ export function DailyGame({ onExit }: { onExit: () => void }) {
   const [game, setGame] = useState(() => createDailyGame(day));
   const [anim, setAnim] = useState<PendingAnim | null>(null);
   const [best, setBest] = useState<number | null>(() => loadBest(localStorage, day));
+  const { hint, padPulse, noteLaunch } = useAimHint();
 
   const handleLaunch = useCallback(
     (input: LaunchInput) => {
+      noteLaunch();
       const { state, trace } = simulateLaunch(game, input);
       setAnim({ trace, next: state });
     },
-    [game],
+    [game, noteLaunch],
   );
 
   const handleAnimDone = useCallback(() => {
@@ -61,9 +64,15 @@ export function DailyGame({ onExit }: { onExit: () => void }) {
         game={game}
         disabled={over || anim !== null}
         anim={anim?.trace ?? null}
+        padPulse={padPulse}
         onLaunch={handleLaunch}
         onAnimDone={handleAnimDone}
       />
+      {hint !== "off" && (
+        <p className={hint === "fading" ? "aim-hint gone" : "aim-hint"}>
+          drag anywhere to aim · release to launch
+        </p>
+      )}
       {over && anim === null && (
         <div className="overlay">
           <div className="panel">

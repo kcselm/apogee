@@ -9,11 +9,14 @@ import {
   type LaunchInput,
   type ProbeFrame,
 } from "@apogee/engine";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { trimToClear } from "../space/playback";
 import { recordResult } from "./campaignStorage";
 import { CampaignCanvas } from "./CampaignCanvas";
+import { introToShow, loadSeen, markSeen } from "./intro";
+import { describeObjectives } from "./objectiveChips";
 import { starCriteria } from "./ratingText";
+import { useAimHint } from "../useAimHint";
 
 interface Props {
   index: number;
@@ -33,13 +36,51 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
   const [state, setState] = useState<CampaignLevelState>(() => createLevel(level));
   const [anim, setAnim] = useState<PendingAnim | null>(null);
   const [saved, setSaved] = useState(false);
+  const { hint, padPulse, noteLaunch } = useAimHint();
+
+  // First open of a chapter's opening level: name the mechanic before play.
+  // Keyed remounts (level change and Retry) re-run this initializer, so the
+  // "not on Retry" rule rests on the persisted list, not on component state.
+  const [intro, setIntro] = useState<string | null>(() =>
+    introToShow(level, loadSeen(localStorage)),
+  );
+  const dismissIntro = useCallback(() => {
+    markSeen(localStorage, level.id);
+    setIntro(null);
+  }, [level.id]);
+
+  // The card mounts full-screen right under the finger that just tapped the
+  // level tile; a reflexive second tap lands on the backdrop within the same
+  // gesture and would otherwise dismiss the card before it's been read, with
+  // no other way to see it again. Delay only the backdrop past that reflex
+  // window — the Got it button and Space/Enter stay live immediately below.
+  const [backdropArmed, setBackdropArmed] = useState(false);
+  useEffect(() => {
+    if (intro === null) return;
+    setBackdropArmed(false);
+    const t = window.setTimeout(() => setBackdropArmed(true), 400);
+    return () => window.clearTimeout(t);
+  }, [intro]);
+
+  useEffect(() => {
+    if (intro === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        dismissIntro();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [intro, dismissIntro]);
 
   const handleLaunch = useCallback(
     (input: LaunchInput) => {
+      noteLaunch();
       const { state: next, trace, clearedAtStep } = simulateCampaignLaunch(state, input);
       setAnim({ trace: trimToClear(trace, clearedAtStep), next, clearAt: clearedAtStep });
     },
-    [state],
+    [state, noteLaunch],
   );
 
   const handleAnimDone = useCallback(() => {
@@ -60,14 +101,25 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
   const launchesLeft = level.launchBudget - state.launchesUsed;
   const hasNext = index + 1 < LEVELS.length;
 
-  const objectiveText = useMemo(() => describeObjectives(state), [state]);
+  const chips = useMemo(() => describeObjectives(state), [state]);
 
   return (
     <>
       <div className="hud">
         <button className="back" onClick={onExit} aria-label="Back to levels" title="Back to levels">←</button>
         <h1>{level.name}</h1>
-        <span className="stat">{objectiveText}</span>
+        <span className="stat chips">
+          {chips.map((c) => (
+            <span
+              key={c.tone}
+              className={`chip chip-${c.tone}${c.done ? " done" : ""}`}
+              title={`${c.label} ${c.text}`}
+              aria-label={`${c.label} ${c.text}`}
+            >
+              {c.glyph} {c.text}
+            </span>
+          ))}
+        </span>
         <span className="stat pips">
           {"●".repeat(Math.max(0, launchesLeft))}
           {"○".repeat(state.launchesUsed)}
@@ -75,12 +127,18 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
       </div>
       <CampaignCanvas
         state={state}
-        disabled={over || anim !== null}
+        disabled={over || anim !== null || intro !== null}
         anim={anim?.trace ?? null}
         clearAt={anim?.clearAt ?? null}
+        padPulse={padPulse}
         onLaunch={handleLaunch}
         onAnimDone={handleAnimDone}
       />
+      {hint !== "off" && (
+        <p className={hint === "fading" ? "aim-hint gone" : "aim-hint"}>
+          drag anywhere to aim · release to launch
+        </p>
+      )}
       {over && (
         <div className="overlay">
           <div className="panel">
@@ -103,20 +161,24 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
           </div>
         </div>
       )}
+      {intro !== null && (
+        <div className="overlay" onClick={() => backdropArmed && dismissIntro()}>
+          <div className="panel intro-card">
+            <div className="intro-name">{level.name}</div>
+            <p className="intro-text">{intro}</p>
+            <div className="actions">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dismissIntro();
+                }}
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
-}
-
-function describeObjectives(state: CampaignLevelState): string {
-  const parts: string[] = [];
-  if (state.level.keys.length > 0) {
-    parts.push(`keys ${state.keysCollected.filter(Boolean).length}/${state.level.keys.length}`);
-  }
-  if (state.level.targets.length > 0) {
-    parts.push(`targets ${state.targetsHit.filter(Boolean).length}/${state.level.targets.length}`);
-  }
-  if (state.level.objectives.some((o) => o.kind === "reach-goal")) {
-    parts.push(state.goalReached ? "goal ✓" : state.keysCollected.every(Boolean) ? "reach goal" : "goal locked");
-  }
-  return parts.join("  ·  ");
 }

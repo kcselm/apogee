@@ -11,6 +11,16 @@ describe("authored levels", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
+  it("exactly the ten chapter-opening levels carry an intro of at most 90 characters", () => {
+    const withIntro = LEVELS.filter((l) => l.intro !== undefined).map((l) => l.id);
+    expect(withIntro).toEqual(["1-1", "2-1", "3-1", "4-1", "5-1", "6-1", "7-1", "8-1", "9-1", "10-1"]);
+    for (const lvl of LEVELS) {
+      if (lvl.intro === undefined) continue;
+      expect(lvl.intro.length, lvl.id).toBeLessThanOrEqual(90);
+      expect(lvl.intro.trim(), lvl.id).toBe(lvl.intro);
+    }
+  });
+
   it("every level declares at least one objective with the data it needs", () => {
     for (const lvl of LEVELS) {
       expect(lvl.objectives.length).toBeGreaterThan(0);

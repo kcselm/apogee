@@ -40,13 +40,29 @@ canvas {
 }
 .hud .stat { flex: 0 0 auto; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }
 .hud .pips { color: var(--accent); letter-spacing: 0.15em; }
-/* Narrow phones: one line down to 360 px (back 32 + objective ≤ 120 + pips content-sized + gaps 24 leaves the rest for the title). */
+.hud .chips { display: inline-flex; gap: 10px; align-items: center; }
+.chip { white-space: nowrap; font-variant-numeric: tabular-nums; opacity: 0.7; }
+.chip.done { opacity: 1; }
+.chip-key { color: #ffd54f; }
+.chip-target { color: #ffb74d; }
+.chip-goal { color: #80cbc4; }
+/* Narrow phones: one line down to 360 px (back 32 + pips content-sized + gaps 24 leaves the rest split between the title and the content-sized objective chips). The chips are not capped at 120px — clipping them mid-word would delete live game state with no elision cue — so the title shrinks first and absorbs the difference. */
 @media (max-width: 480px) {
   .hud { gap: 8px; }
   .hud h1 { font-size: 1.1rem; letter-spacing: 0.12em; }
-  .hud .stat:not(.pips) { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+  .hud .stat:not(.pips):not(.chips) { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
   .hud .pips { font-size: 0.8rem; letter-spacing: 0.06em; }
+  .hud .chips { gap: 6px; }
+  .chip { font-size: 0.85rem; }
 }
+/* One-time aim hint under the board. Rendered only for a profile that has
+   never launched, so it costs no layout on any later visit. */
+.aim-hint {
+  margin-top: 10px; text-align: center;
+  color: var(--muted); letter-spacing: 0.06em;
+  transition: opacity 0.45s ease;
+}
+.aim-hint.gone { opacity: 0; }
 .overlay {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -66,6 +82,12 @@ canvas {
   text-shadow: 0 0 18px rgba(120, 170, 255, 0.4);
 }
 @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
+.intro-card { max-width: 30rem; }
+.intro-name {
+  font-size: 1.1rem; letter-spacing: 0.2em; color: var(--accent);
+  text-transform: uppercase;
+}
+.intro-text { color: var(--ink); line-height: 1.5; margin: 0; }
 .pips { letter-spacing: 0.3em; }
 .back {
   position: relative;

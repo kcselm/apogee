@@ -12,11 +12,12 @@ interface Props {
   disabled: boolean;
   anim: ProbeFrame[][] | null;
   clearAt: number | null;
+  padPulse: boolean;
   onLaunch: (input: LaunchInput) => void;
   onAnimDone: () => void;
 }
 
-export function CampaignCanvas({ state, disabled, anim, clearAt, onLaunch, onAnimDone }: Props) {
+export function CampaignCanvas({ state, disabled, anim, clearAt, padPulse, onLaunch, onAnimDone }: Props) {
   const canvasRef = useBoardCanvas({
     disabled,
     anim,
@@ -38,6 +39,7 @@ export function CampaignCanvas({ state, disabled, anim, clearAt, onLaunch, onAni
           time: o.time,
           animate: o.animate,
           boardTick: o.boardTick,
+          padPulse,
         }),
     },
   });

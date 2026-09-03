@@ -68,6 +68,12 @@ export interface Level {
    *  asserts each level's recorded/brute-forced solution clears within par. */
   par: number;
   portals?: Portal[];
+  /**
+   * One-line mechanic card shown the first time this level is opened. Set only
+   * on each chapter's opening level. Presentation data: the simulation never
+   * reads it, so goldens are unaffected.
+   */
+  intro?: string;
 }
 
 export interface CampaignLevelState {

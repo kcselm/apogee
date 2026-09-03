@@ -46,6 +46,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: { pos: { x: 1180, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
     objectives: [{ kind: "reach-goal" }], par: 1,
+    intro: "Planets pull on your probe. Bend the shot into the goal ring.",
   },
   {
     id: "1-2", name: "Two Worlds",
@@ -69,6 +70,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: { pos: { x: 1180, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
+    intro: "Red worlds pull like planets and destroy anything that touches them. Curve around.",
   },
   {
     id: "2-2", name: "Bent Path",
@@ -93,6 +95,7 @@ export const LEVELS: Level[] = [
     goal: { pos: { x: 1180, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
     objectives: [{ kind: "reach-goal" }], par: 1,
+    intro: "Keys unlock the goal. Fly through the key first; it stays collected between launches.",
   },
   {
     id: "3-2", name: "Hidden Key",
@@ -119,6 +122,7 @@ export const LEVELS: Level[] = [
     targets: [{ pos: { x: 1120, y: 320 }, radius: 26 }, { pos: { x: 1120, y: 720 }, radius: 26 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "hit-all-targets" }], par: 2,
+    intro: "Marks: pass a probe through every one. Landed probes stay on the board.",
   },
   {
     id: "4-2", name: "Spread",
@@ -146,6 +150,7 @@ export const LEVELS: Level[] = [
     targets: [{ pos: { x: 1080, y: 720 }, radius: 24 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], par: 2,
+    intro: "Keys, marks, and guards together. Plan the order of your launches.",
   },
   {
     id: "5-2", name: "Tight Squeeze",
@@ -172,6 +177,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: { pos: { x: 1250, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
+    intro: "Moons orbit on a fixed clock. Their pull moves; time your launch.",
   },
   {
     id: "6-2", name: "Slingshot Tide",
@@ -195,6 +201,7 @@ export const LEVELS: Level[] = [
     keys: [], goal: { pos: { x: 1230, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
+    intro: "Moons meet guards, keys, and marks. The preview is honest; watch the clock.",
   },
   {
     id: "7-2", name: "Keyed Orbit",
@@ -224,6 +231,7 @@ export const LEVELS: Level[] = [
     portals: [makePortal(520, 470, 32, 200, 1), makePortal(1150, 360, 32, 340, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
+    intro: "Wormholes: enter one mouth, leave the other, heading the way it faces.",
   },
   {
     id: "8-2", name: "Bent Passage",
@@ -251,6 +259,7 @@ export const LEVELS: Level[] = [
     portals: [makePortal(1000, 560, 30, 160, 1), makePortal(1280, 360, 30, 10, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
+    intro: "Wormholes with keys, marks, and guards. The exit direction is the puzzle.",
   },
   {
     id: "9-2", name: "Split Marks",
@@ -279,6 +288,7 @@ export const LEVELS: Level[] = [
     portals: [makePortal(520, 340, 28, 150, 1), makePortal(1180, 300, 28, 20, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
     objectives: [{ kind: "hit-all-targets" }], par: 1,
+    intro: "Capstone. Moons, wormholes, and everything before them.",
   },
   {
     id: "10-2", name: "Clockwork Lock",
