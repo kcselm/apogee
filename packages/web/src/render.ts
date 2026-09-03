@@ -48,12 +48,18 @@ const LANDED_RING_RADIUS = 14;
  * was an outline ring, which shared a silhouette with the goal and left a
  * first-time player with nothing to aim from. `pulse` breathes the halo until
  * the player's first launch ever; callers pass false under reduced motion.
+ * The static tick draws only while `idle`: the moment the player starts
+ * aiming, `drawAim` draws its own launch-direction tick from the same ring,
+ * and the two would otherwise point different ways whenever the player aims
+ * off +x — contradicting the real launch direction at exactly the moment
+ * they're trying to read it.
  */
 function drawPad(
   ctx: CanvasRenderingContext2D,
   pos: { x: number; y: number },
   pulse: boolean,
   time: number,
+  idle: boolean,
 ): void {
   ctx.save();
   if (pulse) {
@@ -77,10 +83,12 @@ function drawPad(
   ctx.beginPath();
   ctx.arc(pos.x, pos.y, PAD_RADIUS, 0, Math.PI * 2);
   ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(pos.x + PAD_RADIUS, pos.y);
-  ctx.lineTo(pos.x + PAD_RADIUS + 10, pos.y);
-  ctx.stroke();
+  if (idle) {
+    ctx.beginPath();
+    ctx.moveTo(pos.x + PAD_RADIUS, pos.y);
+    ctx.lineTo(pos.x + PAD_RADIUS + 10, pos.y);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -508,7 +516,7 @@ function drawBursts(
 ): void {
   for (const b of bursts) {
     const p = burstProgress(b, time);
-    const r = PROBE_RADIUS + p * PROBE_RADIUS * 5;
+    const r = PROBE_DRAW_RADIUS + p * PROBE_DRAW_RADIUS * 5;
     const fade = 1 - p;
     ctx.strokeStyle =
       b.kind === "land"
@@ -548,7 +556,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
 
   // Launch pad
   const lp = game.system.launchPos;
-  drawPad(ctx, lp, view.padPulse && view.animate, view.time);
+  drawPad(ctx, lp, view.padPulse && view.animate, view.time, view.drag === null);
 
   // Aiming: preview path + gesture
   if (view.previewPath && view.previewPath.length > 1) {
@@ -708,7 +716,7 @@ export function drawCampaignFrame(
 
   // Launch pad.
   const lp = level.launchPos;
-  drawPad(ctx, lp, view.padPulse && view.animate, view.time);
+  drawPad(ctx, lp, view.padPulse && view.animate, view.time, view.drag === null);
 
   // Aiming preview + gesture.
   if (view.previewPath && view.previewPath.length > 1) {

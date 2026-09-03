@@ -49,6 +49,19 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
     setIntro(null);
   }, [level.id]);
 
+  // The card mounts full-screen right under the finger that just tapped the
+  // level tile; a reflexive second tap lands on the backdrop within the same
+  // gesture and would otherwise dismiss the card before it's been read, with
+  // no other way to see it again. Delay only the backdrop past that reflex
+  // window — the Got it button and Space/Enter stay live immediately below.
+  const [backdropArmed, setBackdropArmed] = useState(false);
+  useEffect(() => {
+    if (intro === null) return;
+    setBackdropArmed(false);
+    const t = window.setTimeout(() => setBackdropArmed(true), 400);
+    return () => window.clearTimeout(t);
+  }, [intro]);
+
   useEffect(() => {
     if (intro === null) return;
     const onKey = (e: KeyboardEvent) => {
@@ -97,7 +110,12 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
         <h1>{level.name}</h1>
         <span className="stat chips">
           {chips.map((c) => (
-            <span key={c.tone} className={`chip chip-${c.tone}${c.done ? " done" : ""}`}>
+            <span
+              key={c.tone}
+              className={`chip chip-${c.tone}${c.done ? " done" : ""}`}
+              title={`${c.label} ${c.text}`}
+              aria-label={`${c.label} ${c.text}`}
+            >
               {c.glyph} {c.text}
             </span>
           ))}
@@ -144,7 +162,7 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
         </div>
       )}
       {intro !== null && (
-        <div className="overlay" onClick={dismissIntro}>
+        <div className="overlay" onClick={() => backdropArmed && dismissIntro()}>
           <div className="panel intro-card">
             <div className="intro-name">{level.name}</div>
             <p className="intro-text">{intro}</p>
