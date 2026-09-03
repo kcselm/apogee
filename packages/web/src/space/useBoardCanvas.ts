@@ -1,5 +1,6 @@
 import { type LaunchInput, type ProbeFrame, PREVIEW_STEPS } from "@apogee/engine";
 import { useEffect, useRef } from "react";
+import { type AimDrag, pullVector, shouldFire } from "./aim";
 import { type Burst, pruneBursts } from "./effects";
 import { prefersReducedMotion, shouldAnimate, watchReducedMotion } from "./motion";
 import { clearTrail, createTrail, pushTrail } from "./trail";
@@ -7,7 +8,8 @@ import { clearTrail, createTrail, pushTrail } from "./trail";
 export interface BoardDrawOpts {
   probeFrames: ProbeFrame[] | null;
   previewPath: { x: number; y: number }[] | null;
-  drag: { dx: number; dy: number } | null;
+  /** The aim gesture in world units (press point + pull so far), or null when not aiming. */
+  drag: AimDrag | null;
   trail: { x: number; y: number }[] | null;
   bursts: Burst[];
   time: number;
@@ -54,7 +56,7 @@ function toWorld(
 
 export function useBoardCanvas(opts: UseBoardCanvas) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
+  const dragRef = useRef<AimDrag | null>(null);
   const trailRef = useRef(createTrail());
   const burstsRef = useRef<Burst[]>([]);
   const frameIdxRef = useRef(0);
@@ -99,9 +101,9 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
 
     const computePreview = (): { x: number; y: number }[] | null => {
       const drag = dragRef.current;
-      if (!drag || (drag.dx === 0 && drag.dy === 0)) return null;
+      if (!drag || !shouldFire(drag)) return null;
       const adapter = adapterRef.current;
-      const trace = adapter.previewTrace(drag, PREVIEW_STEPS, tickRef.current);
+      const trace = adapter.previewTrace({ dx: drag.dx, dy: drag.dy }, PREVIEW_STEPS, tickRef.current);
       return trace
         .map((f) => f[adapter.probeIndex])
         .filter((f): f is ProbeFrame => f !== undefined && f.state === "flying")
@@ -199,21 +201,24 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       // gate on animRef to never begin a drag mid-animation.
       if (cbRef.current.disabled || animRef.current) return;
       canvas.setPointerCapture(e.pointerId);
-      dragRef.current = { dx: 0, dy: 0 };
+      // Press anywhere on the board: the pull is measured from here, the launch
+      // still leaves the pad. A far-off tap therefore starts at zero, not at max.
+      dragRef.current = { origin: toWorld(canvas, e, opts.worldWidth, opts.worldHeight), dx: 0, dy: 0 };
       kick();
     };
     const onMove = (e: PointerEvent) => {
-      if (!dragRef.current) return;
-      const w = toWorld(canvas, e, opts.worldWidth, opts.worldHeight);
-      const lp = adapterRef.current.launchPos;
-      dragRef.current = { dx: lp.x - w.x, dy: lp.y - w.y };
+      const drag = dragRef.current;
+      if (!drag) return;
+      const pointer = toWorld(canvas, e, opts.worldWidth, opts.worldHeight);
+      dragRef.current = { origin: drag.origin, ...pullVector(drag.origin, pointer) };
       kick();
     };
     const onUp = () => {
       const drag = dragRef.current;
       dragRef.current = null;
       kick();
-      if (drag && (drag.dx !== 0 || drag.dy !== 0)) {
+      // Under MIN_PULL the release is a cancel: no launch consumed, no burst.
+      if (drag && shouldFire(drag)) {
         lastLaunchTickRef.current = tickRef.current;
         cbRef.current.onLaunch({ dx: drag.dx, dy: drag.dy, launchTick: tickRef.current });
       }

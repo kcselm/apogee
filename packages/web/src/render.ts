@@ -11,6 +11,7 @@ import {
 } from "@apogee/engine";
 import type { Burst } from "./space/effects";
 import { burstProgress } from "./space/effects";
+import { type AimDrag, clampPull, pullLength, shouldFire } from "./space/aim";
 import { COLORS } from "./space/palette";
 import { PLANET_PALETTES, planetTypeFor, type PlanetType } from "./space/planetStyle";
 import { pathSegments } from "./space/previewPath";
@@ -26,6 +27,42 @@ const DUST: { x: number; y: number; r: number }[] = (() => {
 })();
 
 const RING_COLORS = COLORS.ringPoints;
+
+/** Radius of the launch-pad ring. */
+const PAD_RADIUS = 14;
+/** Length of the launch-direction tick drawn out from the pad ring while aiming. */
+const AIM_TICK = 18;
+
+/**
+ * The aim gesture. The rubber band runs from the press point to the pointer
+ * (capped at MAX_PULL, so it shows what the engine will do), so the finger
+ * sees its own gesture wherever it pressed. The tick at the pad shows the
+ * launch direction and appears only once the pull is long enough to fire.
+ * The dashed preview path is drawn separately: it is the engine's trace.
+ */
+function drawAim(
+  ctx: CanvasRenderingContext2D,
+  pad: { x: number; y: number },
+  drag: AimDrag | null,
+): void {
+  if (!drag) return;
+  const len = pullLength(drag);
+  if (len === 0) return;
+  const band = clampPull(drag);
+  ctx.strokeStyle = COLORS.pad;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(drag.origin.x, drag.origin.y);
+  ctx.lineTo(drag.origin.x - band.dx, drag.origin.y - band.dy);
+  ctx.stroke();
+  if (!shouldFire(drag)) return;
+  const ux = drag.dx / len;
+  const uy = drag.dy / len;
+  ctx.beginPath();
+  ctx.moveTo(pad.x + ux * PAD_RADIUS, pad.y + uy * PAD_RADIUS);
+  ctx.lineTo(pad.x + ux * (PAD_RADIUS + AIM_TICK), pad.y + uy * (PAD_RADIUS + AIM_TICK));
+  ctx.stroke();
+}
 
 function drawDust(
   ctx: CanvasRenderingContext2D,
@@ -48,8 +85,8 @@ export interface RenderView {
   probeFrames: ProbeFrame[] | null;
   /** New-probe preview path while aiming. */
   previewPath: { x: number; y: number }[] | null;
-  /** Current drag vector while aiming (drawn at the launch pad). */
-  drag: { dx: number; dy: number } | null;
+  /** The aim gesture (press point + pull) while aiming, or null. */
+  drag: AimDrag | null;
   /** Recent positions of the in-flight probe (oldest→newest), or null. */
   trail: { x: number; y: number }[] | null;
   /** Active impact bursts to draw. */
@@ -452,21 +489,14 @@ export function drawFrame(ctx: CanvasRenderingContext2D, view: RenderView): void
   ctx.strokeStyle = COLORS.pad;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(lp.x, lp.y, 14, 0, Math.PI * 2);
+  ctx.arc(lp.x, lp.y, PAD_RADIUS, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Aiming: preview path + drag indicator
+  // Aiming: preview path + gesture
   if (view.previewPath && view.previewPath.length > 1) {
     strokePreviewPath(ctx, view.previewPath);
   }
-  if (view.drag) {
-    ctx.strokeStyle = COLORS.pad;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(lp.x, lp.y);
-    ctx.lineTo(lp.x + view.drag.dx, lp.y + view.drag.dy);
-    ctx.stroke();
-  }
+  drawAim(ctx, lp, view.drag);
 
   // In-flight trail, then probes.
   drawTrail(ctx, view.trail);
@@ -485,7 +515,7 @@ export interface CampaignRenderView {
   state: CampaignLevelState;
   probeFrames: ProbeFrame[] | null;
   previewPath: { x: number; y: number }[] | null;
-  drag: { dx: number; dy: number } | null;
+  drag: AimDrag | null;
   trail: { x: number; y: number }[] | null;
   bursts: Burst[];
   time: number;
@@ -621,21 +651,14 @@ export function drawCampaignFrame(
   ctx.strokeStyle = COLORS.pad;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(lp.x, lp.y, 14, 0, Math.PI * 2);
+  ctx.arc(lp.x, lp.y, PAD_RADIUS, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Aiming preview + drag.
+  // Aiming preview + gesture.
   if (view.previewPath && view.previewPath.length > 1) {
     strokePreviewPath(ctx, view.previewPath);
   }
-  if (view.drag) {
-    ctx.strokeStyle = COLORS.pad;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(lp.x, lp.y);
-    ctx.lineTo(lp.x + view.drag.dx, lp.y + view.drag.dy);
-    ctx.stroke();
-  }
+  drawAim(ctx, lp, view.drag);
 
   // In-flight trail, then probes.
   drawTrail(ctx, view.trail);
