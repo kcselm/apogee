@@ -46,11 +46,11 @@ canvas {
 .chip-key { color: #ffd54f; }
 .chip-target { color: #ffb74d; }
 .chip-goal { color: #80cbc4; }
-/* Narrow phones: one line down to 360 px (back 32 + objective ≤ 120 + pips content-sized + gaps 24 leaves the rest for the title). */
+/* Narrow phones: one line down to 360 px (back 32 + pips content-sized + gaps 24 leaves the rest split between the title and the content-sized objective chips). The chips are not capped at 120px — clipping them mid-word would delete live game state with no elision cue — so the title shrinks first and absorbs the difference. */
 @media (max-width: 480px) {
   .hud { gap: 8px; }
   .hud h1 { font-size: 1.1rem; letter-spacing: 0.12em; }
-  .hud .stat:not(.pips) { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+  .hud .stat:not(.pips):not(.chips) { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
   .hud .pips { font-size: 0.8rem; letter-spacing: 0.06em; }
   .hud .chips { gap: 6px; }
   .chip { font-size: 0.85rem; }
