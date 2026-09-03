@@ -1,6 +1,4 @@
 import {
-  WORLD_HEIGHT,
-  WORLD_WIDTH,
   simulateLaunch,
   type GameState,
   type LaunchInput,
@@ -24,10 +22,7 @@ export function GameCanvas({ game, disabled, anim, onLaunch, onAnimDone }: Props
     clearAt: null,
     onLaunch,
     onAnimDone,
-    worldWidth: WORLD_WIDTH,
-    worldHeight: WORLD_HEIGHT,
     adapter: {
-      launchPos: game.system.launchPos,
       probeIndex: game.probes.length,
       previewTrace: (drag, steps) => simulateLaunch(game, drag, steps).trace,
       draw: (ctx, o: BoardDrawOpts) =>
@@ -44,5 +39,5 @@ export function GameCanvas({ game, disabled, anim, onLaunch, onAnimDone }: Props
     },
   });
 
-  return <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} />;
+  return <canvas ref={canvasRef} />;
 }

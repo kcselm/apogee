@@ -1,8 +1,15 @@
-import { type LaunchInput, type ProbeFrame, PREVIEW_STEPS } from "@apogee/engine";
+import { type LaunchInput, type ProbeFrame, type Vec2, PREVIEW_STEPS } from "@apogee/engine";
 import { useEffect, useRef } from "react";
 import { type AimDrag, pullVector, shouldFire } from "./aim";
 import { type Burst, pruneBursts } from "./effects";
 import { prefersReducedMotion, shouldAnimate, watchReducedMotion } from "./motion";
+import {
+  type Orientation,
+  canvasSize,
+  canvasToWorld,
+  canvasTransform,
+  pickOrientation,
+} from "./orientation";
 import { clearTrail, createTrail, pushTrail } from "./trail";
 
 export interface BoardDrawOpts {
@@ -18,9 +25,8 @@ export interface BoardDrawOpts {
   boardTick: number;
 }
 
-/** Per-board adapter: where the launch pad is, how to preview, and how to draw. */
+/** Per-board adapter: how to preview and how to draw. */
 export interface BoardAdapter {
-  launchPos: { x: number; y: number };
   /** Index of the just-launched probe in preview/anim frame arrays. */
   probeIndex: number;
   /** Live-sim a preview trace for the given drag at the current board tick. */
@@ -35,25 +41,27 @@ export interface UseBoardCanvas {
   onLaunch: (input: LaunchInput) => void;
   onAnimDone: () => void;
   adapter: BoardAdapter;
-  worldWidth: number;
-  worldHeight: number;
   /** Frame index at which the level was cleared; the clear burst fires once when playback reaches or passes that frame. */
   clearAt: number | null;
 }
 
-function toWorld(
-  canvas: HTMLCanvasElement,
-  e: PointerEvent,
-  w: number,
-  h: number,
-): { x: number; y: number } {
+/** Pointer → canvas pixels (undoing CSS scaling) → world units (undoing the portrait turn). */
+function toWorld(canvas: HTMLCanvasElement, e: PointerEvent, o: Orientation): Vec2 {
   const rect = canvas.getBoundingClientRect();
-  return {
-    x: ((e.clientX - rect.left) * w) / rect.width,
-    y: ((e.clientY - rect.top) * h) / rect.height,
-  };
+  const { width, height } = canvasSize(o);
+  return canvasToWorld(o, {
+    x: ((e.clientX - rect.left) * width) / rect.width,
+    y: ((e.clientY - rect.top) * height) / rect.height,
+  });
 }
 
+/**
+ * Shared board behaviour for the Daily and Campaign canvases: aiming input,
+ * playback of a launch trace, trails, bursts, and the board clock. The hook
+ * owns the canvas element's pixel size: on portrait viewports the 1600×1000
+ * world is drawn turned 90° counter-clockwise (see orientation.ts); the
+ * renderers and the engine never know.
+ */
 export function useBoardCanvas(opts: UseBoardCanvas) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dragRef = useRef<AimDrag | null>(null);
@@ -98,6 +106,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     if (!canvas || !ctx) return;
     let reduce = prefersReducedMotion();
     let raf = 0;
+    let orientation: Orientation = "landscape";
 
     const computePreview = (): { x: number; y: number }[] | null => {
       const drag = dragRef.current;
@@ -116,6 +125,10 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       const motion = shouldAnimate(reduce, document.hidden);
       const t = motion ? time : 0;
       burstsRef.current = pruneBursts(burstsRef.current, time);
+      // Renderers draw in world units; in portrait this matrix turns the board
+      // on its side. Everything stored (playback, trail, bursts, drag) is world
+      // space, so an orientation change mid-flight only changes the next frame.
+      ctx.setTransform(...canvasTransform(orientation));
       if (anim) {
         const boardTick = animStartTickRef.current + frameIdxRef.current;
         const i = Math.min(frameIdxRef.current, anim.length - 1);
@@ -189,6 +202,20 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     };
     kickRef.current = kick;
 
+    // Re-read the orientation on resize (and once up front). Setting width or
+    // height wipes the canvas and its context state, so only touch them on a
+    // real change, then redraw; the transform is re-applied every frame anyway.
+    const applyOrientation = () => {
+      orientation = pickOrientation(window.innerWidth, window.innerHeight);
+      const { width, height } = canvasSize(orientation);
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+        canvas.style.aspectRatio = `${width} / ${height}`;
+        kick();
+      }
+    };
+
     // Respect live OS reduce-motion changes. On re-enabling motion, resume the
     // ambient loop; on disabling, the loop stops itself next frame via wantLoop().
     const unwatch = watchReducedMotion((r) => {
@@ -203,13 +230,13 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       canvas.setPointerCapture(e.pointerId);
       // Press anywhere on the board: the pull is measured from here, the launch
       // still leaves the pad. A far-off tap therefore starts at zero, not at max.
-      dragRef.current = { origin: toWorld(canvas, e, opts.worldWidth, opts.worldHeight), dx: 0, dy: 0 };
+      dragRef.current = { origin: toWorld(canvas, e, orientation), dx: 0, dy: 0 };
       kick();
     };
     const onMove = (e: PointerEvent) => {
       const drag = dragRef.current;
       if (!drag) return;
-      const pointer = toWorld(canvas, e, opts.worldWidth, opts.worldHeight);
+      const pointer = toWorld(canvas, e, orientation);
       dragRef.current = { origin: drag.origin, ...pullVector(drag.origin, pointer) };
       kick();
     };
@@ -231,10 +258,12 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     const onVisibility = () => {
       if (!document.hidden) kick();
     };
+    applyOrientation();
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
     canvas.addEventListener("pointerup", onUp);
     canvas.addEventListener("pointercancel", onCancel);
+    window.addEventListener("resize", applyOrientation);
     document.addEventListener("visibilitychange", onVisibility);
     kick();
 
@@ -245,10 +274,11 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       canvas.removeEventListener("pointermove", onMove);
       canvas.removeEventListener("pointerup", onUp);
       canvas.removeEventListener("pointercancel", onCancel);
+      window.removeEventListener("resize", applyOrientation);
       document.removeEventListener("visibilitychange", onVisibility);
       unwatch();
     };
-  }, [opts.worldWidth, opts.worldHeight]);
+  }, []);
 
   return canvasRef;
 }

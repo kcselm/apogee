@@ -1,6 +1,4 @@
 import {
-  WORLD_HEIGHT,
-  WORLD_WIDTH,
   simulateCampaignLaunch,
   type CampaignLevelState,
   type LaunchInput,
@@ -25,10 +23,7 @@ export function CampaignCanvas({ state, disabled, anim, clearAt, onLaunch, onAni
     clearAt,
     onLaunch,
     onAnimDone,
-    worldWidth: WORLD_WIDTH,
-    worldHeight: WORLD_HEIGHT,
     adapter: {
-      launchPos: state.level.launchPos,
       probeIndex: state.probes.length,
       previewTrace: (drag, steps, tick) =>
         simulateCampaignLaunch(state, { ...drag, launchTick: tick }, steps).trace,
@@ -47,5 +42,5 @@ export function CampaignCanvas({ state, disabled, anim, clearAt, onLaunch, onAni
     },
   });
 
-  return <canvas ref={canvasRef} width={WORLD_WIDTH} height={WORLD_HEIGHT} />;
+  return <canvas ref={canvasRef} />;
 }
