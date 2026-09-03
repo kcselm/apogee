@@ -142,7 +142,14 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
             <div className="intro-name">{level.name}</div>
             <p className="intro-text">{intro}</p>
             <div className="actions">
-              <button onClick={dismissIntro}>Got it</button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dismissIntro();
+                }}
+              >
+                Got it
+              </button>
             </div>
           </div>
         </div>

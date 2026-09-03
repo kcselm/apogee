@@ -3,8 +3,9 @@ import type { Level } from "@apogee/engine";
 const KEY = "apogee-intro-seen";
 
 /**
- * Level ids whose intro card the player has dismissed. Corrupted or unexpected
- * payloads read as empty, matching campaignStorage.loadProgress.
+ * Level ids whose intro card the player has dismissed. Corrupted or non-array
+ * payloads read as empty (as campaignStorage.loadProgress does for its own
+ * shape), and any non-string entries in an otherwise-valid array are dropped.
  */
 export function loadSeen(storage: Pick<Storage, "getItem">): string[] {
   const raw = storage.getItem(KEY);
