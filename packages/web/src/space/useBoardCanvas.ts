@@ -1,14 +1,14 @@
 import { type LaunchInput, type ProbeFrame, type Vec2, PREVIEW_STEPS } from "@apogee/engine";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { type AimDrag, pullVector, shouldFire } from "./aim";
 import { type Burst, pruneBursts } from "./effects";
 import { prefersReducedMotion, shouldAnimate, watchReducedMotion } from "./motion";
 import {
   type Orientation,
   canvasSize,
-  canvasToWorld,
   canvasTransform,
   pickOrientation,
+  pointerToWorld,
 } from "./orientation";
 import { clearTrail, createTrail, pushTrail } from "./trail";
 
@@ -45,15 +45,14 @@ export interface UseBoardCanvas {
   clearAt: number | null;
 }
 
-/** Pointer → canvas pixels (undoing CSS scaling) → world units (undoing the portrait turn). */
+/** Pointer event → world units, via the canvas's current on-screen rect. */
 function toWorld(canvas: HTMLCanvasElement, e: PointerEvent, o: Orientation): Vec2 {
   const rect = canvas.getBoundingClientRect();
-  const { width, height } = canvasSize(o);
-  return canvasToWorld(o, {
-    x: ((e.clientX - rect.left) * width) / rect.width,
-    y: ((e.clientY - rect.top) * height) / rect.height,
-  });
+  return pointerToWorld(rect, e.clientX, e.clientY, o);
 }
+
+/** A drag in progress, tagged with the pointer that owns it so a second touch can't hijack the origin. */
+type OwnedDrag = AimDrag & { pointerId: number };
 
 /**
  * Shared board behaviour for the Daily and Campaign canvases: aiming input,
@@ -64,7 +63,7 @@ function toWorld(canvas: HTMLCanvasElement, e: PointerEvent, o: Orientation): Ve
  */
 export function useBoardCanvas(opts: UseBoardCanvas) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const dragRef = useRef<AimDrag | null>(null);
+  const dragRef = useRef<OwnedDrag | null>(null);
   const trailRef = useRef(createTrail());
   const burstsRef = useRef<Burst[]>([]);
   const frameIdxRef = useRef(0);
@@ -100,7 +99,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     if (opts.anim) kickRef.current();
   }, [opts.anim]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
@@ -225,32 +224,37 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
 
     const onDown = (e: PointerEvent) => {
       // `disabled` (from the parent) lags one render behind anim start, so also
-      // gate on animRef to never begin a drag mid-animation.
-      if (cbRef.current.disabled || animRef.current) return;
+      // gate on animRef to never begin a drag mid-animation. A drag already in
+      // progress also blocks a new one: a resting second finger must not
+      // re-anchor the origin out from under the finger that's already aiming.
+      if (cbRef.current.disabled || animRef.current || dragRef.current) return;
       canvas.setPointerCapture(e.pointerId);
       // Press anywhere on the board: the pull is measured from here, the launch
       // still leaves the pad. A far-off tap therefore starts at zero, not at max.
-      dragRef.current = { origin: toWorld(canvas, e, orientation), dx: 0, dy: 0 };
+      dragRef.current = { origin: toWorld(canvas, e, orientation), dx: 0, dy: 0, pointerId: e.pointerId };
       kick();
     };
     const onMove = (e: PointerEvent) => {
       const drag = dragRef.current;
-      if (!drag) return;
+      if (!drag || e.pointerId !== drag.pointerId) return;
       const pointer = toWorld(canvas, e, orientation);
-      dragRef.current = { origin: drag.origin, ...pullVector(drag.origin, pointer) };
+      dragRef.current = { ...drag, ...pullVector(drag.origin, pointer) };
       kick();
     };
-    const onUp = () => {
+    const onUp = (e: PointerEvent) => {
       const drag = dragRef.current;
+      if (!drag || e.pointerId !== drag.pointerId) return;
       dragRef.current = null;
       kick();
       // Under MIN_PULL the release is a cancel: no launch consumed, no burst.
-      if (drag && shouldFire(drag)) {
+      if (shouldFire(drag)) {
         lastLaunchTickRef.current = tickRef.current;
         cbRef.current.onLaunch({ dx: drag.dx, dy: drag.dy, launchTick: tickRef.current });
       }
     };
-    const onCancel = () => {
+    const onCancel = (e: PointerEvent) => {
+      const drag = dragRef.current;
+      if (!drag || e.pointerId !== drag.pointerId) return;
       dragRef.current = null;
       kick();
     };

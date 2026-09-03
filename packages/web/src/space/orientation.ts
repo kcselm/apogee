@@ -33,3 +33,21 @@ export function canvasToWorld(o: Orientation, p: Vec2): Vec2 {
 export function canvasTransform(o: Orientation): [number, number, number, number, number, number] {
   return o === "portrait" ? [0, -1, 1, 0, 0, WORLD_WIDTH] : [1, 0, 0, 1, 0, 0];
 }
+
+/**
+ * Pointer input → world units: undoes CSS scaling (the canvas's on-screen
+ * rect vs. its pixel size for `o`), then undoes the portrait turn. `rect` is
+ * whatever `Element.getBoundingClientRect()` shape the caller has on hand.
+ */
+export function pointerToWorld(
+  rect: { left: number; top: number; width: number; height: number },
+  clientX: number,
+  clientY: number,
+  o: Orientation,
+): Vec2 {
+  const { width, height } = canvasSize(o);
+  return canvasToWorld(o, {
+    x: ((clientX - rect.left) * width) / rect.width,
+    y: ((clientY - rect.top) * height) / rect.height,
+  });
+}

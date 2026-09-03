@@ -5,6 +5,7 @@ import {
   canvasToWorld,
   canvasTransform,
   pickOrientation,
+  pointerToWorld,
   worldToCanvas,
   type Orientation,
 } from "../../src/space/orientation";
@@ -71,6 +72,41 @@ describe("worldToCanvas / canvasToWorld", () => {
         expect(worldToCanvas(o, canvasToWorld(o, p))).toEqual(p);
       }
     }
+  });
+});
+
+describe("pointerToWorld", () => {
+  it("undoes CSS scaling in landscape (identity mapping past the rect)", () => {
+    // Rect is a half-scale rendering of the 1600x1000 landscape canvas.
+    const rect = { left: 20, top: 10, width: 800, height: 500 };
+    expect(pointerToWorld(rect, 20 + 400, 10 + 250, "landscape")).toEqual({ x: 800, y: 500 });
+  });
+  it("pairs canvasSize(o).width against rect.width, not swapped, for an oddly-scaled rect", () => {
+    const rect = { left: 12, top: 34, width: 250, height: 400 };
+    const clientX = rect.left + 125;
+    const clientY = rect.top + 200;
+    const { width, height } = canvasSize("portrait");
+    const manual = canvasToWorld("portrait", {
+      x: ((clientX - rect.left) * width) / rect.width,
+      y: ((clientY - rect.top) * height) / rect.height,
+    });
+    expect(pointerToWorld(rect, clientX, clientY, "portrait")).toEqual(manual);
+  });
+  it("pressing the visual bottom-centre of a portrait canvas lands near the launch pad (80, 500)", () => {
+    // Portrait canvas pixel size is 1000x1600 (WORLD_HEIGHT x WORLD_WIDTH); this
+    // rect is a phone-sized CSS rendering at the same 0.625 aspect ratio.
+    const rect = { left: 100, top: 50, width: 300, height: 480 };
+    const clientX = rect.left + rect.width * 0.5; // horizontal centre
+    const clientY = rect.top + rect.height * (1520 / 1600); // near the bottom edge
+    expect(pointerToWorld(rect, clientX, clientY, "portrait")).toEqual({ x: 80, y: 500 });
+  });
+  it("the landscape equivalent: the pad sits near the visual left-centre", () => {
+    // Landscape canvas pixel size is 1600x1000; this rect is a scaled-down
+    // rendering at the same 1.6 aspect ratio.
+    const rect = { left: 5, top: 5, width: 480, height: 300 };
+    const clientX = rect.left + rect.width * (80 / 1600); // near the left edge
+    const clientY = rect.top + rect.height * 0.5; // vertical centre
+    expect(pointerToWorld(rect, clientX, clientY, "landscape")).toEqual({ x: 80, y: 500 });
   });
 });
 
