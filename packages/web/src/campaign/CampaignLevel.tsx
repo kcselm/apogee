@@ -9,10 +9,11 @@ import {
   type LaunchInput,
   type ProbeFrame,
 } from "@apogee/engine";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { trimToClear } from "../space/playback";
 import { recordResult } from "./campaignStorage";
 import { CampaignCanvas } from "./CampaignCanvas";
+import { introToShow, loadSeen, markSeen } from "./intro";
 import { starCriteria } from "./ratingText";
 import { useAimHint } from "../useAimHint";
 
@@ -35,6 +36,29 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
   const [anim, setAnim] = useState<PendingAnim | null>(null);
   const [saved, setSaved] = useState(false);
   const { hint, padPulse, noteLaunch } = useAimHint();
+
+  // First open of a chapter's opening level: name the mechanic before play.
+  // Keyed remounts (level change and Retry) re-run this initializer, so the
+  // "not on Retry" rule rests on the persisted list, not on component state.
+  const [intro, setIntro] = useState<string | null>(() =>
+    introToShow(level, loadSeen(localStorage)),
+  );
+  const dismissIntro = useCallback(() => {
+    markSeen(localStorage, level.id);
+    setIntro(null);
+  }, [level.id]);
+
+  useEffect(() => {
+    if (intro === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        dismissIntro();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [intro, dismissIntro]);
 
   const handleLaunch = useCallback(
     (input: LaunchInput) => {
@@ -78,7 +102,7 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
       </div>
       <CampaignCanvas
         state={state}
-        disabled={over || anim !== null}
+        disabled={over || anim !== null || intro !== null}
         anim={anim?.trace ?? null}
         clearAt={anim?.clearAt ?? null}
         padPulse={padPulse}
@@ -108,6 +132,17 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
               <button onClick={() => onPlay(index)}>Retry</button>
               {cleared && hasNext && <button onClick={() => onPlay(index + 1)}>Next →</button>}
               <button onClick={onExit}>Levels</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {intro !== null && (
+        <div className="overlay" onClick={dismissIntro}>
+          <div className="panel intro-card">
+            <div className="intro-name">{level.name}</div>
+            <p className="intro-text">{intro}</p>
+            <div className="actions">
+              <button onClick={dismissIntro}>Got it</button>
             </div>
           </div>
         </div>
