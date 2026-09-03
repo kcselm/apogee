@@ -14,6 +14,7 @@ import { trimToClear } from "../space/playback";
 import { recordResult } from "./campaignStorage";
 import { CampaignCanvas } from "./CampaignCanvas";
 import { starCriteria } from "./ratingText";
+import { useAimHint } from "../useAimHint";
 
 interface Props {
   index: number;
@@ -33,13 +34,15 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
   const [state, setState] = useState<CampaignLevelState>(() => createLevel(level));
   const [anim, setAnim] = useState<PendingAnim | null>(null);
   const [saved, setSaved] = useState(false);
+  const { hint, padPulse, noteLaunch } = useAimHint();
 
   const handleLaunch = useCallback(
     (input: LaunchInput) => {
+      noteLaunch();
       const { state: next, trace, clearedAtStep } = simulateCampaignLaunch(state, input);
       setAnim({ trace: trimToClear(trace, clearedAtStep), next, clearAt: clearedAtStep });
     },
-    [state],
+    [state, noteLaunch],
   );
 
   const handleAnimDone = useCallback(() => {
@@ -78,10 +81,15 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
         disabled={over || anim !== null}
         anim={anim?.trace ?? null}
         clearAt={anim?.clearAt ?? null}
-        padPulse={false}
+        padPulse={padPulse}
         onLaunch={handleLaunch}
         onAnimDone={handleAnimDone}
       />
+      {hint !== "off" && (
+        <p className={hint === "fading" ? "aim-hint gone" : "aim-hint"}>
+          drag anywhere to aim · release to launch
+        </p>
+      )}
       {over && (
         <div className="overlay">
           <div className="panel">

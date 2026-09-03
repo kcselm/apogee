@@ -47,6 +47,14 @@ canvas {
   .hud .stat:not(.pips) { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
   .hud .pips { font-size: 0.8rem; letter-spacing: 0.06em; }
 }
+/* One-time aim hint under the board. Rendered only for a profile that has
+   never launched, so it costs no layout on any later visit. */
+.aim-hint {
+  margin-top: 10px; text-align: center;
+  color: var(--muted); letter-spacing: 0.06em;
+  transition: opacity 0.45s ease;
+}
+.aim-hint.gone { opacity: 0; }
 .overlay {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
