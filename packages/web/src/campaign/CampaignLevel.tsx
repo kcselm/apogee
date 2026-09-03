@@ -65,7 +65,7 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
   return (
     <>
       <div className="hud">
-        <button className="back" onClick={onExit}>← levels</button>
+        <button className="back" onClick={onExit} aria-label="Back to levels" title="Back to levels">←</button>
         <h1>{level.name}</h1>
         <span className="stat">{objectiveText}</span>
         <span className="stat pips">

@@ -14,7 +14,7 @@ export function CampaignMap({ onExit, onPlay }: Props) {
   return (
     <>
       <div className="hud">
-        <button className="back" onClick={onExit}>← menu</button>
+        <button className="back" onClick={onExit} aria-label="Back to menu" title="Back to menu">←</button>
         <h1>Campaign</h1>
       </div>
       <div className="level-grid">

@@ -27,15 +27,26 @@ canvas {
   border-radius: 8px; touch-action: none; cursor: crosshair;
 }
 .hud {
-  display: flex; gap: 24px; align-items: baseline; max-width: 1100px; width: 100%;
+  display: flex; flex-wrap: nowrap; align-items: center; gap: 24px;
+  max-width: 1100px; width: 100%; min-width: 0;
   padding-bottom: 8px; border-bottom: 1px solid rgba(128, 170, 230, 0.18);
 }
+/* The title shrinks first (ellipsis); everything else keeps its size. */
 .hud h1 {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   font-size: 1.3rem; letter-spacing: 0.2em;
   text-shadow: 0 0 14px rgba(120, 170, 255, 0.4);
 }
-.hud .stat { font-variant-numeric: tabular-nums; color: var(--muted); }
+.hud .stat { flex: 0 0 auto; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }
 .hud .pips { color: var(--accent); letter-spacing: 0.15em; }
+/* Narrow phones: one line down to 360 px (back 32 + objective ≤ 120 + pips ≤ 72 + gaps 24 leaves ≥ 80 px for the title). */
+@media (max-width: 480px) {
+  .hud { gap: 8px; }
+  .hud h1 { font-size: 1.1rem; letter-spacing: 0.12em; }
+  .hud .stat:not(.pips) { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+  .hud .pips { font-size: 0.8rem; letter-spacing: 0.06em; max-width: 72px; overflow: hidden; }
+}
 .overlay {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -56,7 +67,10 @@ canvas {
 }
 @keyframes overlay-in { from { opacity: 0; } to { opacity: 1; } }
 .pips { letter-spacing: 0.3em; }
-.back { background: none; border: none; color: #80cbc4; cursor: pointer; font-size: 0.9rem; }
+.back {
+  flex: 0 0 auto; background: none; border: none; color: #80cbc4; cursor: pointer;
+  font-size: 1.25rem; line-height: 1; padding: 4px 6px; min-width: 32px;
+}
 .home { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 18vh; }
 .home h1 {
   font-size: 3rem; font-weight: 800; letter-spacing: 0.34em; color: #eaf0ff;

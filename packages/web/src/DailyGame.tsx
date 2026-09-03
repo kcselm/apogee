@@ -48,7 +48,7 @@ export function DailyGame({ onExit }: { onExit: () => void }) {
   return (
     <>
       <div className="hud">
-        <button className="back" onClick={onExit}>← menu</button>
+        <button className="back" onClick={onExit} aria-label="Back to menu" title="Back to menu">←</button>
         <h1>APOGEE</h1>
         <span className="stat">{day}</span>
         <span className="stat pips">
