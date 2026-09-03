@@ -14,6 +14,7 @@ import { trimToClear } from "../space/playback";
 import { recordResult } from "./campaignStorage";
 import { CampaignCanvas } from "./CampaignCanvas";
 import { introToShow, loadSeen, markSeen } from "./intro";
+import { describeObjectives } from "./objectiveChips";
 import { starCriteria } from "./ratingText";
 import { useAimHint } from "../useAimHint";
 
@@ -87,14 +88,20 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
   const launchesLeft = level.launchBudget - state.launchesUsed;
   const hasNext = index + 1 < LEVELS.length;
 
-  const objectiveText = useMemo(() => describeObjectives(state), [state]);
+  const chips = useMemo(() => describeObjectives(state), [state]);
 
   return (
     <>
       <div className="hud">
         <button className="back" onClick={onExit} aria-label="Back to levels" title="Back to levels">←</button>
         <h1>{level.name}</h1>
-        <span className="stat">{objectiveText}</span>
+        <span className="stat chips">
+          {chips.map((c) => (
+            <span key={c.tone} className={`chip chip-${c.tone}${c.done ? " done" : ""}`}>
+              {c.glyph} {c.text}
+            </span>
+          ))}
+        </span>
         <span className="stat pips">
           {"●".repeat(Math.max(0, launchesLeft))}
           {"○".repeat(state.launchesUsed)}
@@ -156,18 +163,4 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
       )}
     </>
   );
-}
-
-function describeObjectives(state: CampaignLevelState): string {
-  const parts: string[] = [];
-  if (state.level.keys.length > 0) {
-    parts.push(`keys ${state.keysCollected.filter(Boolean).length}/${state.level.keys.length}`);
-  }
-  if (state.level.targets.length > 0) {
-    parts.push(`targets ${state.targetsHit.filter(Boolean).length}/${state.level.targets.length}`);
-  }
-  if (state.level.objectives.some((o) => o.kind === "reach-goal")) {
-    parts.push(state.goalReached ? "goal ✓" : state.keysCollected.every(Boolean) ? "reach goal" : "goal locked");
-  }
-  return parts.join("  ·  ");
 }

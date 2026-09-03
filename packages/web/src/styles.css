@@ -40,12 +40,20 @@ canvas {
 }
 .hud .stat { flex: 0 0 auto; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }
 .hud .pips { color: var(--accent); letter-spacing: 0.15em; }
+.hud .chips { display: inline-flex; gap: 10px; align-items: center; }
+.chip { white-space: nowrap; font-variant-numeric: tabular-nums; opacity: 0.7; }
+.chip.done { opacity: 1; }
+.chip-key { color: #ffd54f; }
+.chip-target { color: #ffb74d; }
+.chip-goal { color: #80cbc4; }
 /* Narrow phones: one line down to 360 px (back 32 + objective ≤ 120 + pips content-sized + gaps 24 leaves the rest for the title). */
 @media (max-width: 480px) {
   .hud { gap: 8px; }
   .hud h1 { font-size: 1.1rem; letter-spacing: 0.12em; }
   .hud .stat:not(.pips) { max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
   .hud .pips { font-size: 0.8rem; letter-spacing: 0.06em; }
+  .hud .chips { gap: 6px; }
+  .chip { font-size: 0.85rem; }
 }
 /* One-time aim hint under the board. Rendered only for a profile that has
    never launched, so it costs no layout on any later visit. */
