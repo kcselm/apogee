@@ -4,3 +4,4 @@ dist/
 .superpowers/
 .playwright-mcp/
 .claude/worktrees/
+packages/engine/tests/_*.test.ts

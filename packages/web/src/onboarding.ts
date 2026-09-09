@@ -1,3 +1,5 @@
+import type { AppStorage } from "./safeStorage";
+
 const KEY = "apogee-onboarded";
 
 /**
@@ -10,6 +12,6 @@ export function hasLaunchedBefore(storage: Pick<Storage, "getItem">): boolean {
 }
 
 /** Record that the player has launched. Idempotent. */
-export function markLaunched(storage: Storage): void {
+export function markLaunched(storage: AppStorage): void {
   storage.setItem(KEY, "1");
 }

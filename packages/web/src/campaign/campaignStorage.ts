@@ -1,3 +1,5 @@
+import type { AppStorage } from "../safeStorage";
+
 export interface LevelProgress {
   cleared: boolean;
   stars: number;
@@ -22,7 +24,7 @@ export function loadProgress(storage: Pick<Storage, "getItem">): CampaignProgres
 
 /** Merge a result in, keeping best stars and sticky cleared. Returns new progress. */
 export function recordResult(
-  storage: Storage,
+  storage: AppStorage,
   levelId: string,
   cleared: boolean,
   stars: number,

@@ -11,6 +11,7 @@ import {
 import { useCallback, useState } from "react";
 import { todayString } from "./daily";
 import { loadBest, recordScore } from "./storage";
+import { appStorage } from "./safeStorage";
 import { GameCanvas } from "./GameCanvas";
 import { CountUp } from "./CountUp";
 import { useAimHint } from "./useAimHint";
@@ -25,7 +26,7 @@ export function DailyGame({ onExit }: { onExit: () => void }) {
   const [day] = useState(todayString);
   const [game, setGame] = useState(() => createDailyGame(day));
   const [anim, setAnim] = useState<PendingAnim | null>(null);
-  const [best, setBest] = useState<number | null>(() => loadBest(localStorage, day));
+  const [best, setBest] = useState<number | null>(() => loadBest(appStorage, day));
   const { hint, padPulse, noteLaunch } = useAimHint();
   const skipHint = useSkipHint(anim !== null);
 
@@ -43,7 +44,7 @@ export function DailyGame({ onExit }: { onExit: () => void }) {
     setGame(anim.next);
     setAnim(null);
     if (isGameOver(anim.next)) {
-      setBest(recordScore(localStorage, day, scoreGame(anim.next).total));
+      setBest(recordScore(appStorage, day, scoreGame(anim.next).total));
     }
   }, [anim, day]);
 
