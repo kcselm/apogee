@@ -16,10 +16,10 @@ Apogee — a space-curling puzzle. **[Play →](https://apogee-7w9.pages.dev)**
 
 The simulation is a pure, dependency-free TypeScript package that produces the same result on every machine.
 
-- **Determinism by construction.** Numeric code uses only `+ − × ÷ sqrt`, the operations IEEE 754 pins down exactly, so there is no trig or transcendental drift between engines. Same seed and same inputs give an identical trajectory everywhere.
+- **Determinism by construction.** The simulation loop uses only `+ − × ÷ sqrt`, the operations IEEE 754 pins down exactly, so there is no trig or transcendental drift between engines. Same seed and same inputs give an identical trajectory everywhere.
 - **Seeded generation.** The daily board is generated from the date; everyone plays the same star system.
-- **Golden tests.** Full daily and campaign runs are snapshotted step by step; a golden that changes is a bug, never a regeneration.
-- **Brute-force solvability.** Every static campaign level is proven solvable within its launch budget by exhaustive search on each test run.
+- **Golden tests.** Full daily and campaign runs are locked in end-state snapshots; a golden that changes is a bug, never a regeneration.
+- **Brute-force solvability.** Every static campaign level is proven solvable within its launch budget by brute-force search over a launch grid on each test run.
 - **Mechanic audits.** Opt-in tools delete a level's moons or wormholes and re-solve it to prove the mechanic was required, discover pars, and find stored solutions for the moving levels.
 - **Replayable inputs.** A launch is a direction pair and an optional tick; a whole run is a seed plus a handful of them, small enough to verify a replay anywhere.
 
