@@ -1,23 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { hasLaunchedBefore, markLaunched } from "./onboarding";
+import { appStorage } from "./safeStorage";
 
 export type HintState = "show" | "fading" | "off";
 
 /**
  * Time to hold "fading" before dropping to "off", in ms. Longer than
  * styles.css's `.aim-hint` opacity transition (0.45s) so the fade finishes
- * before the caption's `<p>` (and its `margin-top: 10px`) leaves the DOM —
- * cutting it short would pop the box away mid-fade instead of after it.
+ * before the caption's `<p>` leaves the DOM — cutting it short would pop
+ * the overlay away mid-fade instead of after it.
  */
 const FADE_MS = 500;
 
 /**
  * The one-time aim hint, shared by both boards. A profile that has never
- * launched sees the caption and a breathing pad; the first launch marks the
- * profile, fades the caption out, and — once the fade finishes — drops it to
- * "off" so its `<p>` unmounts and stops holding layout for the rest of the
- * session. On every later mount the caption is absent entirely, so it costs
- * no layout.
+ * launched sees the caption (an overlay on the board's bottom edge, see
+ * `.aim-hint` in styles.css) and a breathing pad; the first launch marks
+ * the profile, fades the caption out, and — once the fade finishes — drops
+ * it to "off" so its `<p>` unmounts. On every later mount the caption is
+ * absent entirely.
  */
 export function useAimHint(): {
   hint: HintState;
@@ -25,7 +26,7 @@ export function useAimHint(): {
   noteLaunch: () => void;
 } {
   const [hint, setHint] = useState<HintState>(() =>
-    hasLaunchedBefore(localStorage) ? "off" : "show",
+    hasLaunchedBefore(appStorage) ? "off" : "show",
   );
   // Whether the one write this hook is allowed has already happened. Seeded
   // from the initial render's hint (a profile that had already launched
@@ -50,7 +51,7 @@ export function useAimHint(): {
     // twice.
     if (firedRef.current) return;
     firedRef.current = true;
-    markLaunched(localStorage);
+    markLaunched(appStorage);
     setHint("fading");
     fadeTimer.current = setTimeout(() => setHint("off"), FADE_MS);
   }, []);

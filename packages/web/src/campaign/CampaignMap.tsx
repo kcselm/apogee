@@ -1,6 +1,7 @@
 import { LEVELS } from "@apogee/engine";
 import { useMemo } from "react";
 import { isUnlocked, loadProgress } from "./campaignStorage";
+import { appStorage } from "../safeStorage";
 
 interface Props {
   onExit: () => void;
@@ -8,7 +9,7 @@ interface Props {
 }
 
 export function CampaignMap({ onExit, onPlay }: Props) {
-  const progress = useMemo(() => loadProgress(localStorage), []);
+  const progress = useMemo(() => loadProgress(appStorage), []);
   const ids = LEVELS.map((l) => l.id);
 
   return (

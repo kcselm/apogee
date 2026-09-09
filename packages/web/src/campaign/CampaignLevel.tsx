@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { trimToClear } from "../space/playback";
 import { recordResult } from "./campaignStorage";
+import { appStorage } from "../safeStorage";
 import { CampaignCanvas } from "./CampaignCanvas";
 import { introToShow, loadSeen, markSeen } from "./intro";
 import { describeObjectives } from "./objectiveChips";
@@ -44,10 +45,10 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
   // Keyed remounts (level change and Retry) re-run this initializer, so the
   // "not on Retry" rule rests on the persisted list, not on component state.
   const [intro, setIntro] = useState<string | null>(() =>
-    introToShow(level, loadSeen(localStorage)),
+    introToShow(level, loadSeen(appStorage)),
   );
   const dismissIntro = useCallback(() => {
-    markSeen(localStorage, level.id);
+    markSeen(appStorage, level.id);
     setIntro(null);
   }, [level.id]);
 
@@ -92,7 +93,7 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
     setAnim(null);
     if (isLevelOver(next) && !saved) {
       const { cleared } = evaluateObjectives(next);
-      recordResult(localStorage, next.level.id, cleared, starRating(next).stars);
+      recordResult(appStorage, next.level.id, cleared, starRating(next).stars);
       setSaved(true);
     }
   }, [anim, saved]);

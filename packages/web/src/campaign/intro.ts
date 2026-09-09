@@ -1,4 +1,5 @@
 import type { Level } from "@apogee/engine";
+import type { AppStorage } from "../safeStorage";
 
 const KEY = "apogee-intro-seen";
 
@@ -20,7 +21,7 @@ export function loadSeen(storage: Pick<Storage, "getItem">): string[] {
 }
 
 /** Record that this level's intro has been shown. Returns the new list. */
-export function markSeen(storage: Storage, levelId: string): string[] {
+export function markSeen(storage: AppStorage, levelId: string): string[] {
   const seen = loadSeen(storage);
   if (!seen.includes(levelId)) seen.push(levelId);
   storage.setItem(KEY, JSON.stringify(seen));
