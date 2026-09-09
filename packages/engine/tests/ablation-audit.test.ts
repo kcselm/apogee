@@ -3,7 +3,7 @@ import { LEVELS, isMovingLevel } from "../src/campaign/levels";
 import type { Level } from "../src/campaign/types";
 import { findTimedSolution } from "./campaign-solver-timed";
 
-declare const process: { env: { SOLVE?: string } };
+declare const process: { env: { SOLVE?: string; LEVELS?: string } };
 
 /** Moon gravity deleted: orbiting bodies keep their position, radius, and
  *  collision but lose gravity (mass 0). Orbiting keys/targets are objectives,
@@ -40,9 +40,12 @@ function twins(lvl: Level): { label: string; level: Level }[] {
 // for a level with both mechanics, BOTH twins must print `mechanic required`.
 // Skipped in CI (brute-force). Run:
 //   $env:SOLVE=1; pnpm --filter @apogee/engine exec vitest run ablation-audit
+//   Subset: $env:LEVELS="8-1,8-2" (same as level-stats).
 describe.skipIf(!process.env.SOLVE)("ablation audit — moving levels", () => {
   it("prints any level clearable without its mechanic", () => {
     for (const lvl of LEVELS) {
+      const only = process.env.LEVELS?.split(",").map((s) => s.trim()).filter(Boolean);
+      if (only && only.length > 0 && !only.includes(lvl.id)) continue;
       if (!isMovingLevel(lvl)) continue;
       const variants = twins(lvl);
       if (variants.length === 0) {
