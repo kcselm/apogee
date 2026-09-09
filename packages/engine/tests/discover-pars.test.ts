@@ -16,5 +16,5 @@ describe.skipIf(!process.env.SOLVE)("discover pars for static levels", () => {
       // eslint-disable-next-line no-console
       console.log(`${lvl.id}: par ${sol ? sol.length : "UNSOLVABLE"}`);
     }
-  });
+  }, 600_000);
 });

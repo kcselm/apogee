@@ -15,5 +15,5 @@ describe.skipIf(!process.env.SOLVE)("discover solutions for moving levels", () =
       // eslint-disable-next-line no-console
       console.log(`"${lvl.id}":`, sol ? JSON.stringify(sol) + "," : "UNSOLVABLE — adjust layout/budget");
     }
-  });
+  }, 600_000);
 });

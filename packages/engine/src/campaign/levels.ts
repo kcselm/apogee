@@ -181,14 +181,14 @@ export const LEVELS: Level[] = [
   },
   {
     id: "6-2", name: "Slingshot Tide",
-    bodies: [planet(800, 500, 130), moon(800, 500, 80, 220, 0.5, 1)],
+    bodies: [planet(800, 500, 130), moon(800, 500, 80, 240, 0.5, 1)],
     keys: [], goal: { pos: { x: 1520, y: 656 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "6-3", name: "Twin Moons",
-    bodies: [planet(700, 500, 120), moon(700, 500, 72, 200, 0, 1), moon(700, 500, 72, 200, 0.5, -1)],
+    bodies: [planet(700, 500, 120), moon(700, 500, 60, 200, 0, 1), moon(700, 500, 60, 340, 0.5, -1)],
     keys: [], goal: { pos: { x: 1264, y: 816 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
@@ -197,7 +197,7 @@ export const LEVELS: Level[] = [
   // --- Chapter 7: moons meet blockers/keys/targets (19-21) ---
   {
     id: "7-1", name: "Moon & Guard",
-    bodies: [blocker(520, 500, 110), planet(900, 500, 96), moon(900, 500, 80, 220, 0, 1)],
+    bodies: [blocker(520, 500, 110), planet(900, 500, 96), moon(900, 500, 60, 180, 0, 1)],
     keys: [], goal: { pos: { x: 1552, y: 496 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
@@ -224,8 +224,14 @@ export const LEVELS: Level[] = [
   },
 
   // --- Chapter 8: wormholes, reach the goal (22-24) ---
+  // Ch 8-10 body radii are 96-200 on purpose: a brute-force sweep of the solver's
+  // 8064-input grid shows nothing smaller casts an unreachable shadow (one r<=96
+  // planet leaves the whole board reachable), so a lighter wall makes the wormhole
+  // optional and the ablation audit flags the level. R10: keep every planet-kind
+  // disc — a moon over its whole orbit — at least 12u clear of every blocker disc.
   {
     id: "8-1", name: "Through the Door",
+    // Gate: the planet-and-two-guards wall makes (1520,272) ballistically unreachable.
     bodies: [planet(700, 500, 96), blocker(700, 200, 140), blocker(700, 800, 140)],
     keys: [], goal: { pos: { x: 1520, y: 272 }, radius: 40 }, targets: [],
     portals: [makePortal(400, 500, 32, 180, 1), makePortal(1380, 272, 32, 0, 0)],
@@ -243,6 +249,7 @@ export const LEVELS: Level[] = [
   },
   {
     id: "8-3", name: "Redirect",
+    // Wall with 50u seams (R10); the portal turns the shot ~70 deg down into the pocket.
     bodies: [blocker(700, 150, 150), planet(700, 500, 150), blocker(700, 850, 150)],
     keys: [], goal: { pos: { x: 1520, y: 944 }, radius: 38 }, targets: [],
     portals: [makePortal(420, 620, 30, 200, 1), makePortal(1520, 830, 30, 90, 0)],
@@ -253,6 +260,8 @@ export const LEVELS: Level[] = [
   // --- Chapter 9: wormholes meet keys/targets/blockers (25-27) ---
   {
     id: "9-1", name: "Portal Key",
+    // One r200 planet instead of a wall: its field alone bends every shot short of
+    // the top-right corner, so the door is the only way there. Do not shrink it.
     bodies: [planet(700, 500, 200)],
     keys: [{ pos: { x: 280, y: 590 }, radius: 26 }],
     goal: { pos: { x: 1552, y: 80 }, radius: 36 }, targets: [],
@@ -263,7 +272,10 @@ export const LEVELS: Level[] = [
   },
   {
     id: "9-2", name: "Split Marks",
-    bodies: [blocker(760, 170, 170), planet(760, 500, 170), blocker(760, 830, 170)],
+    // All-blocker wall (R10: a planet before an overlapping blocker lets probes land
+    // alive inside red); the lone planet is a pad-side world to bend off. One door
+    // per mark; both marks sit in the wall's shadow.
+    bodies: [blocker(760, 170, 170), blocker(760, 500, 170), blocker(760, 830, 170), planet(400, 850, 90)],
     keys: [], goal: undefined,
     targets: [{ pos: { x: 1424, y: 368 }, radius: 26 }, { pos: { x: 1424, y: 624 }, radius: 26 }],
     portals: [
@@ -275,6 +287,7 @@ export const LEVELS: Level[] = [
   },
   {
     id: "9-3", name: "Gauntlet Gate",
+    // All-blocker gauntlet, r180 so the discs overlap and leave no threadable seam.
     bodies: [blocker(640, 180, 180), blocker(640, 500, 180), blocker(640, 820, 180)],
     keys: [], goal: { pos: { x: 1296, y: 496 }, radius: 36 }, targets: [],
     portals: [makePortal(400, 380, 28, 160, 1), makePortal(1200, 496, 28, 0, 0)],
@@ -285,43 +298,47 @@ export const LEVELS: Level[] = [
   // --- Chapter 10: everything together (28-30) ---
   {
     id: "10-1", name: "Convergence",
+    // Both mechanics are load-bearing (audit runs one twin per mechanic): the wall
+    // makes the door necessary, and both marks sit past the probe's coasting range
+    // out of the exit, so only the moon's slingshot reaches them. par 1 -> 2.
     bodies: [
-      blocker(620, 170, 170), planet(620, 500, 170), blocker(620, 830, 170),
-      planet(1200, 500, 90), moon(1200, 500, 55, 190, 0, 1),
+      blocker(620, 170, 170), blocker(620, 500, 170), blocker(620, 830, 170),
+      planet(1250, 700, 70), moon(1250, 700, 55, 190, 0, 1),
     ],
     keys: [], goal: undefined,
-    targets: [{ pos: { x: 1500, y: 220 }, radius: 26 }, { pos: { x: 1500, y: 780 }, radius: 26 }],
-    portals: [
-      makePortal(400, 420, 28, 165, 1), makePortal(1380, 220, 28, 0, 0),
-      makePortal(400, 580, 28, 195, 3), makePortal(1380, 780, 28, 0, 2),
-    ],
+    targets: [{ pos: { x: 1296, y: 432 }, radius: 26 }, { pos: { x: 1520, y: 688 }, radius: 26 }],
+    portals: [makePortal(400, 420, 28, 165, 1), makePortal(1100, 440, 28, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
     objectives: [{ kind: "hit-all-targets" }], par: 2,
     intro: "Capstone. Moons, wormholes, and everything before them.",
   },
   {
     id: "10-2", name: "Clockwork Lock",
+    // Same twin rule: the goal is out of static range of the exit mouth, so the moon
+    // has to be caught on the right side of its orbit to fling the probe there. par 1 -> 2.
     bodies: [
-      planet(700, 170, 170), blocker(700, 500, 170), blocker(700, 830, 170),
-      planet(1300, 620, 70), moon(1300, 620, 45, 150, 0, 1),
+      blocker(700, 170, 170), blocker(700, 500, 170), blocker(700, 830, 170),
+      planet(1300, 300, 70), moon(1300, 300, 55, 190, 0, 1),
     ],
     keys: [{ pos: { x: 380, y: 300 }, radius: 26 }],
-    goal: { pos: { x: 1500, y: 180 }, radius: 36 }, targets: [],
-    portals: [makePortal(420, 380, 28, 165, 1), makePortal(1380, 180, 28, 0, 0)],
+    goal: { pos: { x: 1488, y: 80 }, radius: 36 }, targets: [],
+    portals: [makePortal(420, 620, 28, 195, 1), makePortal(1150, 560, 28, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
     objectives: [{ kind: "reach-goal" }], par: 2,
   },
   {
     id: "10-3", name: "Event Horizon",
+    // The works, and both twins pass: wall + door for the mark, moon slingshot for the
+    // goal in the bottom-right. par 2 -> 3.
     bodies: [
-      blocker(660, 170, 170), blocker(660, 500, 170), planet(660, 830, 170),
-      planet(1180, 700, 80), moon(1180, 700, 50, 150, 0, -1),
+      blocker(660, 170, 170), blocker(660, 500, 170), blocker(660, 830, 170),
+      planet(1280, 720, 80), moon(1280, 720, 60, 190, 0, -1),
     ],
     keys: [{ pos: { x: 300, y: 200 }, radius: 26 }],
-    goal: { pos: { x: 1540, y: 880 }, radius: 36 },
-    targets: [{ pos: { x: 1400, y: 880 }, radius: 24 }],
-    portals: [makePortal(430, 660, 26, 200, 1), makePortal(1290, 880, 26, 0, 0)],
+    goal: { pos: { x: 1520, y: 880 }, radius: 36 },
+    targets: [{ pos: { x: 1296, y: 432 }, radius: 24 }],
+    portals: [makePortal(430, 380, 26, 165, 1), makePortal(1120, 440, 26, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 7,
-    objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], par: 2,
+    objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], par: 3,
   },
 ];
