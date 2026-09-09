@@ -8,6 +8,7 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       # corepack asks before downloading a package manager; never prompt in CI.
       COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
@@ -21,6 +22,7 @@ jobs:
       # pnpm comes from the packageManager field via corepack. Enable it
       # after setup-node so the shim lands in Node 24's bin, not the runner's
       # default Node.
+      # Node 25+ no longer bundles corepack; if node-version is bumped, replace this step with pnpm/action-setup@v4.
       - run: corepack enable
 
       - name: Resolve pnpm store path
