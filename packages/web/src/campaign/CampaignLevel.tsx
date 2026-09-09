@@ -17,6 +17,7 @@ import { introToShow, loadSeen, markSeen } from "./intro";
 import { describeObjectives } from "./objectiveChips";
 import { starCriteria } from "./ratingText";
 import { useAimHint } from "../useAimHint";
+import { useSkipHint } from "../useSkipHint";
 
 interface Props {
   index: number;
@@ -37,6 +38,7 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
   const [anim, setAnim] = useState<PendingAnim | null>(null);
   const [saved, setSaved] = useState(false);
   const { hint, padPulse, noteLaunch } = useAimHint();
+  const skipHint = useSkipHint(anim !== null);
 
   // First open of a chapter's opening level: name the mechanic before play.
   // Keyed remounts (level change and Retry) re-run this initializer, so the
@@ -139,6 +141,7 @@ export function CampaignLevel({ index, onExit, onPlay }: Props) {
           drag anywhere to aim · release to launch
         </p>
       )}
+      {skipHint && <p className="aim-hint skip-hint">tap to skip</p>}
       {over && (
         <div className="overlay">
           <div className="panel">

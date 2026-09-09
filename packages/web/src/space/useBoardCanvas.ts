@@ -10,6 +10,7 @@ import {
   pickOrientation,
   pointerToWorld,
 } from "./orientation";
+import { advanceClock, advancePlayback, createPlaybackClock, isPlaybackDone, skipTarget } from "./playback";
 import { clearTrail, createTrail, pushTrail } from "./trail";
 
 export interface BoardDrawOpts {
@@ -73,6 +74,9 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
   const tickRef = useRef(0);
   const lastLaunchTickRef = useRef(0);
   const animStartTickRef = useRef(0);
+  // Fixed-rate playback clock: converts rAF wall-clock timestamps into whole
+  // sim steps at SIM_HZ, so playback speed is independent of display refresh.
+  const clockRef = useRef(createPlaybackClock());
 
   // Refs kept fresh every render so the persistent loop reads current values.
   const animRef = useRef(opts.anim);
@@ -91,6 +95,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     prevStateRef.current = "flying";
     clearFiredRef.current = false;
     clearTrail(trailRef.current);
+    clockRef.current = createPlaybackClock();
   }
 
   // Kick the loop when a new animation arrives (needed in reduced-motion idle).
@@ -118,23 +123,51 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
         .map((f) => ({ x: f.x, y: f.y }));
     };
 
+    // Jump straight to the final frame of the in-flight trace. The next
+    // render() then runs no consume steps (already at the end), draws the
+    // final frame, fires the land/lost burst via the existing transition
+    // check, fires the clear burst via the existing crossing check, and
+    // completes — determinism untouched, since the trace was precomputed at
+    // launch and skip only changes what gets watched.
+    const skipAnim = () => {
+      const anim = animRef.current;
+      if (!anim) return;
+      frameIdxRef.current = skipTarget(anim.length);
+      clearTrail(trailRef.current);
+      kick();
+    };
+
     const render = (time: number) => {
       const adapter = adapterRef.current;
       const anim = animRef.current;
       const motion = shouldAnimate(reduce, document.hidden);
       const t = motion ? time : 0;
+      // Owed sim steps for this display frame, at a fixed SIM_HZ regardless of
+      // the display's refresh rate. Gated on tab visibility only (not motion):
+      // reduced-motion playback still advances, just without trail/bursts.
+      const steps = document.hidden ? 0 : advanceClock(clockRef.current, time);
       burstsRef.current = pruneBursts(burstsRef.current, time);
       // Renderers draw in world units; in portrait this matrix turns the board
       // on its side. Everything stored (playback, trail, bursts, drag) is world
       // space, so an orientation change mid-flight only changes the next frame.
       ctx.setTransform(...canvasTransform(orientation));
       if (anim) {
+        // Consume `steps` sim frames this display frame (0 repeats the frame
+        // on high-Hz displays; >1 catches up on low-Hz ones).
+        const { idx, consumed } = advancePlayback(frameIdxRef.current, steps, anim.length);
+        frameIdxRef.current = idx;
+        if (motion) {
+          for (const ci of consumed) {
+            const f = anim[ci]?.[adapter.probeIndex];
+            if (f && f.state === "flying") pushTrail(trailRef.current, f.x, f.y);
+          }
+        }
         const boardTick = animStartTickRef.current + frameIdxRef.current;
-        const i = Math.min(frameIdxRef.current, anim.length - 1);
-        const probeFrames = anim[i] ?? null;
+        // advancePlayback and skipAnim both cap frameIdxRef at anim.length - 1,
+        // so no further clamp is needed to index into anim here.
+        const probeFrames = anim[frameIdxRef.current] ?? null;
         const pf = probeFrames?.[adapter.probeIndex];
         if (pf) {
-          if (motion && pf.state === "flying") pushTrail(trailRef.current, pf.x, pf.y);
           if (pf.state !== prevStateRef.current && pf.state !== "flying") {
             if (motion) {
               burstsRef.current.push({
@@ -163,15 +196,14 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
           animate: motion,
           boardTick,
         });
-        frameIdxRef.current++;
-        if (frameIdxRef.current >= anim.length) {
+        if (isPlaybackDone(frameIdxRef.current, anim.length)) {
           tickRef.current = animStartTickRef.current + anim.length;
           animRef.current = null;
           clearTrail(trailRef.current);
           cbRef.current.onAnimDone();
         }
       } else {
-        if (motion) tickRef.current++;
+        if (motion) tickRef.current += steps;
         adapter.draw(ctx, {
           probeFrames: null,
           previewPath: computePreview(),
@@ -223,11 +255,18 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     });
 
     const onDown = (e: PointerEvent) => {
-      // `disabled` (from the parent) lags one render behind anim start, so also
-      // gate on animRef to never begin a drag mid-animation. A drag already in
-      // progress also blocks a new one: a resting second finger must not
-      // re-anchor the origin out from under the finger that's already aiming.
-      if (cbRef.current.disabled || animRef.current || dragRef.current) return;
+      // A tap/click during playback skips to the end instead of starting (or
+      // being ignored as) a drag.
+      if (animRef.current) {
+        skipAnim();
+        return;
+      }
+      // `disabled` (from the parent) lags one render behind anim start, but
+      // playback is already handled above, so this is the drag-suppression
+      // guard proper. A drag already in progress also blocks a new one: a
+      // resting second finger must not re-anchor the origin out from under
+      // the finger that's already aiming.
+      if (cbRef.current.disabled || dragRef.current) return;
       canvas.setPointerCapture(e.pointerId);
       // Press anywhere on the board: the pull is measured from here, the launch
       // still leaves the pad. A far-off tap therefore starts at zero, not at max.
@@ -262,6 +301,13 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     const onVisibility = () => {
       if (!document.hidden) kick();
     };
+    // Space is a keyboard-only way to skip playback (mirrors onDown's tap-to-skip).
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === "Space" && animRef.current) {
+        e.preventDefault();
+        skipAnim();
+      }
+    };
     applyOrientation();
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
@@ -269,6 +315,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     canvas.addEventListener("pointercancel", onCancel);
     window.addEventListener("resize", applyOrientation);
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("keydown", onKey);
     kick();
 
     return () => {
@@ -280,6 +327,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       canvas.removeEventListener("pointercancel", onCancel);
       window.removeEventListener("resize", applyOrientation);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("keydown", onKey);
       unwatch();
     };
   }, []);
