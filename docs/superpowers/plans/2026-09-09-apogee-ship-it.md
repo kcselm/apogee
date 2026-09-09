@@ -32,12 +32,10 @@
 2. **The README does not claim a forgiveness sweep.** The spec's outline lists "SOLVE-gated ablation audit and forgiveness sweep"; the roadmap (line 80) says the sweep tool "is committed in sprint 5; until then it lives in scratch". The README names only tools that exist in the tree: the ablation audit, the par discoverer, and the solution discoverer.
 3. **The hero image is composed in-page from the two canvases rather than screenshotted.** The board canvas draws over a separate viewport-sized starfield canvas and clears its own background, so a screenshot clip at an exact 1600×1000 would need pixel-perfect viewport arithmetic and a raw canvas export would be transparent. Drawing the starfield region and the board into a 1600×1000 offscreen canvas gives the spec's exact size with the real background.
 4. **One fun-debt deferred minor is folded into Task 4.** The final fun-debt re-review noted that the comments in `packages/web/src/useAimHint.ts` still describe the caption as in-flow with `margin-top: 10px` (it has been an overlay since `5d0f72d`) and asked for a refresh "in the next web commit". Task 4 edits that file anyway.
+5. **Hosting is Pages Direct Upload, not Git integration** (spec decision 1). Kevin asked for the project to be created with wrangler; a wrangler-created Pages project cannot later be git-connected. Cloudflare therefore does not build the repo: production is deployed with `wrangler pages deploy … --branch main` after each merge (Task 11), previews with `--branch <name>` (Task 10). The spec's dashboard build settings (build command, output directory, `NODE_VERSION`) are moot. CI remains the gate the spec describes.
 
 ## Dependencies on Kevin
 
-Two things only Kevin can do, both marked in their tasks:
-
-- **Task 1** creates the Cloudflare Pages project and reports the site URL. Tasks 2–7 do not need it. Tasks 8 and 9 do (the README's Play link and the absolute `og:image`). If Task 1 has not reported by the time Task 8 starts, do Tasks 8 and 9 last.
 - **Task 10** needs a pull request opened (no `gh` CLI on this machine; the GitHub MCP plugin is not authenticated). The task gives the compare URL.
 
 ---
@@ -64,32 +62,36 @@ Two things only Kevin can do, both marked in their tasks:
 
 ---
 
-### Task 1: Cloudflare Pages project (Kevin — not an agent task)
+### Task 1: Cloudflare Pages project (done with wrangler)
 
 **Files:** none in the repo.
 
 **Interfaces:**
-- Produces: `SITE_URL`, the production origin (`https://<project>.pages.dev`, no trailing slash). Tasks 8, 9, 10, and 11 consume it.
+- Produces: `SITE_URL` = `https://apogee-7w9.pages.dev` (no trailing slash). Tasks 8, 9, 10, and 11 consume it.
 
-- [ ] **Step 1: Create the project**
+- [x] **Step 1: Create the project**
 
-In the Cloudflare dashboard: Workers & Pages → Create → Pages → Connect to Git → `kcselm/apogee`. Settings, verbatim from the spec:
+Kevin asked for wrangler instead of the dashboard. Wrangler 4.130 is logged in to his account, and this ran from `packages/web` (wrangler refuses to auto-detect from a workspace root):
 
-| Setting | Value |
-|---|---|
-| Project name | `apogee` (Cloudflare may append a suffix if taken; whatever it assigns is the URL) |
-| Production branch | `main` |
-| Framework preset | None |
-| Build command | `pnpm install --frozen-lockfile && pnpm --filter @apogee/web build` |
-| Build output directory | `packages/web/dist` |
-| Root directory | `/` |
-| Environment variable (Production and Preview) | `NODE_VERSION` = `24` |
+```bash
+npx wrangler@latest pages project create apogee --production-branch main --force
+```
 
-Save and deploy. The first build runs against current `main` (`2d583f6`) and should succeed as-is; it exercises the same commands as CI.
+`--force` was needed once: without it, current wrangler "delegates" Pages project creation to Workers static assets and its auto-configuration failed inside the pnpm workspace. The bare `apogee` subdomain was taken, so Cloudflare assigned `apogee-7w9`.
 
-- [ ] **Step 2: Report the URL**
+**Consequence (deviation 5 below):** this is a Direct Upload project. Cloudflare's docs say git integration cannot be added to an existing Pages project, so Cloudflare does not build the repo. Deploys are:
 
-Write `SITE_URL` (for example `https://apogee.pages.dev`) into the sprint report and tell the executing agent. Also note whether the first production build succeeded; if it failed, paste the build log's last 30 lines.
+```bash
+pnpm --filter @apogee/web build
+npx wrangler pages deploy packages/web/dist --project-name apogee --branch main   # production
+npx wrangler pages deploy packages/web/dist --project-name apogee --branch <name> # preview at https://<name>.apogee-7w9.pages.dev
+```
+
+CI (Task 6) stays a pure gate. A CI deploy job with an API-token secret is a possible follow-up, not part of this sprint.
+
+- [x] **Step 2: First deployment**
+
+The branch build at `f6f7f84` was deployed as preview `feat-ship-it`: `https://feat-ship-it.apogee-7w9.pages.dev` serves `index.html` and `/og.png`. Production has no deployment until Task 11.
 
 ---
 
@@ -812,6 +814,12 @@ pnpm test         # engine + web suites
 pnpm typecheck
 ```
 
+Deploying is one command after a green `main` (the site is a Cloudflare Pages direct-upload project; CI gates, it does not deploy):
+
+```sh
+pnpm --filter @apogee/web build && npx wrangler pages deploy packages/web/dist --project-name apogee --branch main
+```
+
 The solver-backed tools are gated behind `SOLVE=1` because they run for seconds to minutes:
 
 ```sh
@@ -950,7 +958,14 @@ If it fails: read the log, fix on the branch, push again. The two likeliest caus
 
 - [ ] **Step 4: Preview URL loads**
 
-Cloudflare builds every non-production branch. Find the preview URL on the Pages project's Deployments tab (it looks like `https://feat-ship-it.<project>.pages.dev` or a commit-hash subdomain). Open it in a desktop browser with the console open, play one campaign level to completion. Expected: no console errors, the favicon ring in the tab, `og:image` absolute in the page source.
+Deploy the branch head as a preview (Direct Upload; Cloudflare does not build the repo):
+
+```bash
+pnpm --filter @apogee/web build
+npx wrangler pages deploy packages/web/dist --project-name apogee --branch feat-ship-it
+```
+
+Expected: `Deployment alias URL: https://feat-ship-it.apogee-7w9.pages.dev`. Open it in a desktop browser with the console open, play one campaign level to completion. Expected: no console errors, the favicon ring in the tab, `og:image` absolute in the page source (`curl -s https://feat-ship-it.apogee-7w9.pages.dev/ | grep og:image`).
 
 - [ ] **Step 5: Storage-failure check (stands in for a Safari private window)**
 
@@ -1065,7 +1080,15 @@ The PR closes itself when `main` contains the branch. Then `git branch -d feat/s
 
 - [ ] **Step 2: Production**
 
-Cloudflare deploys `main` automatically. When the deployment is live:
+Deploy `main` (Direct Upload; nothing happens on push by itself):
+
+```bash
+git checkout main
+pnpm --filter @apogee/web build
+npx wrangler pages deploy packages/web/dist --project-name apogee --branch main
+```
+
+Expected: `Deployment complete!` with the production URL `https://apogee-7w9.pages.dev`. Then:
 
 1. `SITE_URL` on a laptop with the console open: play a level. No errors; CI badge on the GitHub repo page is green.
 2. `SITE_URL` on your phone: the board and HUD fit at portrait; a level plays; landed probes visible at arm's length (sprint 3's bar still holds).
