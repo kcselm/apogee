@@ -10,6 +10,7 @@ import {
   pickOrientation,
   pointerToWorld,
 } from "./orientation";
+import { advanceClock, createPlaybackClock } from "./playback";
 import { clearTrail, createTrail, pushTrail } from "./trail";
 
 export interface BoardDrawOpts {
@@ -73,6 +74,9 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
   const tickRef = useRef(0);
   const lastLaunchTickRef = useRef(0);
   const animStartTickRef = useRef(0);
+  // Fixed-rate playback clock: converts rAF wall-clock timestamps into whole
+  // sim steps at SIM_HZ, so playback speed is independent of display refresh.
+  const clockRef = useRef(createPlaybackClock());
 
   // Refs kept fresh every render so the persistent loop reads current values.
   const animRef = useRef(opts.anim);
@@ -91,6 +95,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     prevStateRef.current = "flying";
     clearFiredRef.current = false;
     clearTrail(trailRef.current);
+    clockRef.current = createPlaybackClock();
   }
 
   // Kick the loop when a new animation arrives (needed in reduced-motion idle).
@@ -123,18 +128,28 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       const anim = animRef.current;
       const motion = shouldAnimate(reduce, document.hidden);
       const t = motion ? time : 0;
+      // Owed sim steps for this display frame, at a fixed SIM_HZ regardless of
+      // the display's refresh rate. Gated on tab visibility only (not motion):
+      // reduced-motion playback still advances, just without trail/bursts.
+      const steps = document.hidden ? 0 : advanceClock(clockRef.current, time);
       burstsRef.current = pruneBursts(burstsRef.current, time);
       // Renderers draw in world units; in portrait this matrix turns the board
       // on its side. Everything stored (playback, trail, bursts, drag) is world
       // space, so an orientation change mid-flight only changes the next frame.
       ctx.setTransform(...canvasTransform(orientation));
       if (anim) {
+        // Consume `steps` sim frames this display frame (0 repeats the frame
+        // on high-Hz displays; >1 catches up on low-Hz ones).
+        for (let s = 0; s < steps && frameIdxRef.current < anim.length - 1; s++) {
+          frameIdxRef.current++;
+          const f = anim[frameIdxRef.current]?.[adapter.probeIndex];
+          if (motion && f && f.state === "flying") pushTrail(trailRef.current, f.x, f.y);
+        }
         const boardTick = animStartTickRef.current + frameIdxRef.current;
         const i = Math.min(frameIdxRef.current, anim.length - 1);
         const probeFrames = anim[i] ?? null;
         const pf = probeFrames?.[adapter.probeIndex];
         if (pf) {
-          if (motion && pf.state === "flying") pushTrail(trailRef.current, pf.x, pf.y);
           if (pf.state !== prevStateRef.current && pf.state !== "flying") {
             if (motion) {
               burstsRef.current.push({
@@ -163,15 +178,14 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
           animate: motion,
           boardTick,
         });
-        frameIdxRef.current++;
-        if (frameIdxRef.current >= anim.length) {
+        if (frameIdxRef.current >= anim.length - 1) {
           tickRef.current = animStartTickRef.current + anim.length;
           animRef.current = null;
           clearTrail(trailRef.current);
           cbRef.current.onAnimDone();
         }
       } else {
-        if (motion) tickRef.current++;
+        if (motion) tickRef.current += steps;
         adapter.draw(ctx, {
           probeFrames: null,
           previewPath: computePreview(),

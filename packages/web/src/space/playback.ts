@@ -12,3 +12,37 @@ export function trimToClear<T>(trace: T[], clearedAtStep: number | null, tail = 
   const end = clearedAtStep + 1 + tail;
   return end >= trace.length ? trace : trace.slice(0, end);
 }
+
+/** Fixed-rate sim clock: converts rAF wall-clock timestamps into whole sim
+ *  steps at SIM_HZ, independent of display refresh rate. */
+export const SIM_HZ = 60;
+const STEP_MS = 1000 / SIM_HZ;
+/** Cap per-frame catch-up so a stall (tab switch, GC) skips instead of
+ *  fast-forwarding the board. */
+export const MAX_CATCHUP_STEPS = 5;
+/** Guard against float error when timestamps are exact STEP_MS multiples. */
+const EPSILON = 1e-6;
+
+export interface PlaybackClock {
+  last: number | null;
+}
+
+export function createPlaybackClock(): PlaybackClock {
+  return { last: null };
+}
+
+/** Whole steps owed at `nowMs`. First call anchors the clock and returns 0. */
+export function advanceClock(clock: PlaybackClock, nowMs: number): number {
+  if (clock.last === null) {
+    clock.last = nowMs;
+    return 0;
+  }
+  const steps = Math.floor((nowMs - clock.last) / STEP_MS + EPSILON);
+  if (steps <= 0) return 0;
+  if (steps > MAX_CATCHUP_STEPS) {
+    clock.last = nowMs;
+    return MAX_CATCHUP_STEPS;
+  }
+  clock.last += steps * STEP_MS;
+  return steps;
+}
