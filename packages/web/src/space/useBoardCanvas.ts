@@ -10,7 +10,7 @@ import {
   pickOrientation,
   pointerToWorld,
 } from "./orientation";
-import { advanceClock, createPlaybackClock } from "./playback";
+import { advanceClock, advancePlayback, createPlaybackClock, isPlaybackDone, skipTarget } from "./playback";
 import { clearTrail, createTrail, pushTrail } from "./trail";
 
 export interface BoardDrawOpts {
@@ -132,7 +132,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     const skipAnim = () => {
       const anim = animRef.current;
       if (!anim) return;
-      frameIdxRef.current = anim.length - 1;
+      frameIdxRef.current = skipTarget(anim.length);
       clearTrail(trailRef.current);
       kick();
     };
@@ -154,14 +154,18 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       if (anim) {
         // Consume `steps` sim frames this display frame (0 repeats the frame
         // on high-Hz displays; >1 catches up on low-Hz ones).
-        for (let s = 0; s < steps && frameIdxRef.current < anim.length - 1; s++) {
-          frameIdxRef.current++;
-          const f = anim[frameIdxRef.current]?.[adapter.probeIndex];
-          if (motion && f && f.state === "flying") pushTrail(trailRef.current, f.x, f.y);
+        const { idx, consumed } = advancePlayback(frameIdxRef.current, steps, anim.length);
+        frameIdxRef.current = idx;
+        if (motion) {
+          for (const ci of consumed) {
+            const f = anim[ci]?.[adapter.probeIndex];
+            if (f && f.state === "flying") pushTrail(trailRef.current, f.x, f.y);
+          }
         }
         const boardTick = animStartTickRef.current + frameIdxRef.current;
-        const i = Math.min(frameIdxRef.current, anim.length - 1);
-        const probeFrames = anim[i] ?? null;
+        // advancePlayback and skipAnim both cap frameIdxRef at anim.length - 1,
+        // so no further clamp is needed to index into anim here.
+        const probeFrames = anim[frameIdxRef.current] ?? null;
         const pf = probeFrames?.[adapter.probeIndex];
         if (pf) {
           if (pf.state !== prevStateRef.current && pf.state !== "flying") {
@@ -192,7 +196,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
           animate: motion,
           boardTick,
         });
-        if (frameIdxRef.current >= anim.length - 1) {
+        if (isPlaybackDone(frameIdxRef.current, anim.length)) {
           tickRef.current = animStartTickRef.current + anim.length;
           animRef.current = null;
           clearTrail(trailRef.current);

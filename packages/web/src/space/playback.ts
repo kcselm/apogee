@@ -46,3 +46,29 @@ export function advanceClock(clock: PlaybackClock, nowMs: number): number {
   clock.last += steps * STEP_MS;
   return steps;
 }
+
+/**
+ * Advance a playback index by up to `steps` sim frames, never past the trace's
+ * last frame (`len - 1`). `consumed` lists the indices advanced TO, in frame
+ * order — the frames the trail should receive. 0 steps (or an index already
+ * at the end) returns the same `idx` with an empty `consumed`.
+ */
+export function advancePlayback(idx: number, steps: number, len: number): { idx: number; consumed: number[] } {
+  const consumed: number[] = [];
+  let i = idx;
+  for (let s = 0; s < steps && i < len - 1; s++) {
+    i++;
+    consumed.push(i);
+  }
+  return { idx: i, consumed };
+}
+
+/** The final frame index of a trace of length `len`; where skip jumps to. */
+export function skipTarget(len: number): number {
+  return len - 1;
+}
+
+/** Whether playback has reached (or passed) the trace's final frame. */
+export function isPlaybackDone(idx: number, len: number): boolean {
+  return idx >= len - 1;
+}

@@ -55,10 +55,15 @@ canvas {
   .hud .chips { gap: 6px; }
   .chip { font-size: 0.85rem; }
 }
-/* One-time aim hint under the board. Rendered only for a profile that has
-   never launched, so it costs no layout on any later visit. */
+/* Caption overlaid on the board's bottom edge: the one-time aim hint (shown
+   only for a profile that has never launched) and the tap-to-skip hint
+   (`.skip-hint`, shown every flight) both use this class and share its
+   geometry. Taken out of flow so `.screen-fade`'s bottom edge stays the
+   canvas's bottom edge — the canvas is height-limited on several common
+   viewports, and an in-flow caption below it would land off-screen. */
 .aim-hint {
-  margin-top: 10px; text-align: center;
+  position: absolute; left: 0; right: 0; bottom: 10px; margin: 0;
+  text-align: center; pointer-events: none;
   color: var(--muted); letter-spacing: 0.06em;
   transition: opacity 0.45s ease;
 }
@@ -132,6 +137,7 @@ canvas {
 .level-tile .stars { letter-spacing: 0.15em; color: #ffd54f; text-shadow: 0 0 10px rgba(255, 213, 79, 0.4); }
 .level-tile.locked { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 .screen-fade {
+  position: relative;
   width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px;
   animation: screen-in 0.3s ease both;
 }

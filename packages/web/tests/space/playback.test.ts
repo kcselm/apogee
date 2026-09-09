@@ -4,7 +4,10 @@ import {
   MAX_CATCHUP_STEPS,
   SIM_HZ,
   advanceClock,
+  advancePlayback,
   createPlaybackClock,
+  isPlaybackDone,
+  skipTarget,
   trimToClear,
 } from "../../src/space/playback";
 
@@ -59,5 +62,47 @@ describe("playback clock", () => {
     expect(advanceClock(c, 5000)).toBe(MAX_CATCHUP_STEPS);
     // The stall is discarded, not replayed: the next normal frame owes 1 step.
     expect(advanceClock(c, 5000 + FRAME)).toBe(1);
+  });
+});
+
+describe("advancePlayback / skipTarget / isPlaybackDone", () => {
+  it("0 steps repeats the frame with nothing consumed", () => {
+    expect(advancePlayback(10, 0, 200)).toEqual({ idx: 10, consumed: [] });
+  });
+
+  it("5 steps with 2 frames left consumes exactly 2 and lands on len - 1", () => {
+    // len 200 → last index 199; starting at 197, 2 frames remain.
+    expect(advancePlayback(197, 5, 200)).toEqual({ idx: 199, consumed: [198, 199] });
+  });
+
+  it("advancePlayback after skipTarget consumes nothing", () => {
+    const len = 200;
+    const idx = skipTarget(len);
+    expect(advancePlayback(idx, 5, len)).toEqual({ idx, consumed: [] });
+  });
+
+  it("isPlaybackDone is false at len - 2, true at len - 1", () => {
+    expect(isPlaybackDone(198, 200)).toBe(false);
+    expect(isPlaybackDone(199, 200)).toBe(true);
+  });
+
+  it("a trace of length 1 is done at idx 0 with nothing to consume", () => {
+    expect(isPlaybackDone(0, 1)).toBe(true);
+    expect(advancePlayback(0, 5, 1)).toEqual({ idx: 0, consumed: [] });
+  });
+
+  it("board-clock identity start + len holds whether the end is reached by steps or by skip", () => {
+    const start = 42;
+    const len = 200;
+    // Reached by steps (possibly across several render() calls).
+    const stepped = advancePlayback(0, 1000, len);
+    expect(isPlaybackDone(stepped.idx, len)).toBe(true);
+    expect(start + stepped.idx).toBe(start + (len - 1));
+    // Reached by skip.
+    const skipped = skipTarget(len);
+    expect(isPlaybackDone(skipped, len)).toBe(true);
+    // Both paths land on the same final index, so start + len (the tick the
+    // hook assigns on completion) is identical either way.
+    expect(stepped.idx).toBe(skipped);
   });
 });
