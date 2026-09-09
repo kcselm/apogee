@@ -14,6 +14,7 @@ import { loadBest, recordScore } from "./storage";
 import { GameCanvas } from "./GameCanvas";
 import { CountUp } from "./CountUp";
 import { useAimHint } from "./useAimHint";
+import { useSkipHint } from "./useSkipHint";
 
 interface PendingAnim {
   trace: ProbeFrame[][];
@@ -26,6 +27,7 @@ export function DailyGame({ onExit }: { onExit: () => void }) {
   const [anim, setAnim] = useState<PendingAnim | null>(null);
   const [best, setBest] = useState<number | null>(() => loadBest(localStorage, day));
   const { hint, padPulse, noteLaunch } = useAimHint();
+  const skipHint = useSkipHint(anim !== null);
 
   const handleLaunch = useCallback(
     (input: LaunchInput) => {
@@ -73,6 +75,7 @@ export function DailyGame({ onExit }: { onExit: () => void }) {
           drag anywhere to aim · release to launch
         </p>
       )}
+      {skipHint && <p className="aim-hint skip-hint">tap to skip</p>}
       {over && anim === null && (
         <div className="overlay">
           <div className="panel">

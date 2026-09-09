@@ -123,6 +123,20 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
         .map((f) => ({ x: f.x, y: f.y }));
     };
 
+    // Jump straight to the final frame of the in-flight trace. The next
+    // render() then runs no consume steps (already at the end), draws the
+    // final frame, fires the land/lost burst via the existing transition
+    // check, fires the clear burst via the existing crossing check, and
+    // completes — determinism untouched, since the trace was precomputed at
+    // launch and skip only changes what gets watched.
+    const skipAnim = () => {
+      const anim = animRef.current;
+      if (!anim) return;
+      frameIdxRef.current = anim.length - 1;
+      clearTrail(trailRef.current);
+      kick();
+    };
+
     const render = (time: number) => {
       const adapter = adapterRef.current;
       const anim = animRef.current;
@@ -237,11 +251,18 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     });
 
     const onDown = (e: PointerEvent) => {
-      // `disabled` (from the parent) lags one render behind anim start, so also
-      // gate on animRef to never begin a drag mid-animation. A drag already in
-      // progress also blocks a new one: a resting second finger must not
-      // re-anchor the origin out from under the finger that's already aiming.
-      if (cbRef.current.disabled || animRef.current || dragRef.current) return;
+      // A tap/click during playback skips to the end instead of starting (or
+      // being ignored as) a drag.
+      if (animRef.current) {
+        skipAnim();
+        return;
+      }
+      // `disabled` (from the parent) lags one render behind anim start, but
+      // playback is already handled above, so this is the drag-suppression
+      // guard proper. A drag already in progress also blocks a new one: a
+      // resting second finger must not re-anchor the origin out from under
+      // the finger that's already aiming.
+      if (cbRef.current.disabled || dragRef.current) return;
       canvas.setPointerCapture(e.pointerId);
       // Press anywhere on the board: the pull is measured from here, the launch
       // still leaves the pad. A far-off tap therefore starts at zero, not at max.
@@ -276,6 +297,13 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     const onVisibility = () => {
       if (!document.hidden) kick();
     };
+    // Space is a keyboard-only way to skip playback (mirrors onDown's tap-to-skip).
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === "Space" && animRef.current) {
+        e.preventDefault();
+        skipAnim();
+      }
+    };
     applyOrientation();
     canvas.addEventListener("pointerdown", onDown);
     canvas.addEventListener("pointermove", onMove);
@@ -283,6 +311,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
     canvas.addEventListener("pointercancel", onCancel);
     window.addEventListener("resize", applyOrientation);
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("keydown", onKey);
     kick();
 
     return () => {
@@ -294,6 +323,7 @@ export function useBoardCanvas(opts: UseBoardCanvas) {
       canvas.removeEventListener("pointercancel", onCancel);
       window.removeEventListener("resize", applyOrientation);
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("keydown", onKey);
       unwatch();
     };
   }, []);

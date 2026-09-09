@@ -63,6 +63,7 @@ canvas {
   transition: opacity 0.45s ease;
 }
 .aim-hint.gone { opacity: 0; }
+.skip-hint { animation: overlay-in 0.3s ease both; }
 .overlay {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -136,7 +137,7 @@ canvas {
 }
 @keyframes screen-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .screen-fade, .overlay { animation: none; }
+  .screen-fade, .overlay, .skip-hint { animation: none; }
 }
 .star-criteria { list-style: none; padding: 0; margin: 0.5rem 0 0; font-size: 0.85rem; text-align: left; }
 .star-criteria .met { color: #ffd54f; }
