@@ -15,7 +15,7 @@
 ## Global Constraints
 
 - Work on a new branch `feat/ship-it` cut from `main` at `2d583f6` (fun-debt merged; `main` and `origin/main` are identical). **This sprint pushes** — CI can only be proven on GitHub — but only the feature branch, and only from Task 10 onward. Do not push `main` until Task 11.
-- **The only engine change permitted is `packages/engine/tsconfig.json` gaining `"exclude": ["tests/_*"]`.** `git diff --stat main..HEAD -- packages/engine` must show exactly that one file at the end of the sprint.
+- **The only engine changes permitted are `packages/engine/tsconfig.json` gaining `"exclude": ["tests/_*"]` and `packages/engine/package.json` gaining `"license": "MIT"` (spec §3).** `git diff --stat main..HEAD -- packages/engine` must show exactly those two files at the end of the sprint; no `src/` or `tests/` file.
 - **Goldens must stay byte-identical.** `packages/engine/tests/golden.test.ts` and `campaign-golden.test.ts` pass untouched. Vitest rewrites the two `.snap` files with LF on Windows (the committed blobs are LF; `core.autocrlf=true` makes the working copy CRLF); this shows as `M` in `git status` with zero hunks in `git diff`. Never stage a `.snap` file. Stage by file name, never `git add -A`.
 - Engine discipline unchanged: `+ − × ÷ sqrt` only. Not exercised by this sprint.
 - **No text drawn on the canvas.** Not exercised by this sprint; the constraint holds by not touching `render.ts`.
