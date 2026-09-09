@@ -31,7 +31,7 @@
 
 1. **CI replays a stored reference for every level and retires the static brute-force test.** Spec §3 says `SOLUTIONS` entries are replaced with the sweep's references "so the CI solvability test replays the shot the level is designed around", and §6 lists "CI (existing): every recorded solution clears within par". Today CI brute-forces static levels on a 96 × 7 grid and replays `SOLUTIONS` only for moving levels. A test level tightened to the 0.15–0.7 % band on the 4 320-input fine grid can have zero hits on the 672-input coarse grid, so the brute-force test would fail on correctly tuned levels. Task 3 extends `SOLUTIONS` to all thirty ids and makes the replay test universal; `findSolution` stays for the `discover-pars` tool.
 2. **No precision-rule change for 5-1 / 9-2.** The spec says "consider min-over-sensors precision or a layout where the first pass cannot be a bullseye". A precision change touches `simulate.ts` and moves the campaign golden's `bestPrecision`/`stars`; this sprint is content and tooling. The tuning tasks use layout only. If a level cannot reach the 10–40 % 3★ band by layout, it is recorded as an exception in the tuning record with the measured share, not forced.
-3. **The sweep's power axis tops out at the 200-unit drawn cap.** The solvers use powers up to 260, but `MAX_SPEED / POWER_SCALE = 200`, so any pull beyond 200 is the same launch; the web caps the drawn pull at 200 too. Twelve powers from 20 to 200 measure what a player can actually input.
+3. **The sweep's power axis is 40 … 260 in steps of 20, matching the 2026-09-01 sweep the spec's bands were calibrated on.** `MAX_SPEED / POWER_SCALE = 200`, so 220/240/260 are speed-clamped duplicates of 200 (max-power shots weigh ×4). A 20–200 axis was measured at plan-execution time and reads about half as forgiving (1-1: 1.53 % vs the spec's 3.03 %; 40–260 gives 3.17 %), which would mis-tune every "keep" row. Comparability with the spec's table and bands wins; the duplication is documented in the tool.
 4. **The reference search is progress-pruned, like the solvers.** Shortest-playback search over par launches keeps, per progress signature, only the three shortest-playback prefixes. It can miss a clear that needs a non-progress launch (parking a probe as a blocker); the fun-debt solvers have the same blind spot and the spec calls the sweep an authoring tool, not a proof.
 5. **`level-stats` gets a `LEVELS` filter, and so does the ablation audit.** The full sweep takes minutes; a per-level tuning loop needs a per-level run. `LEVELS=3-1,3-2` restricts both tools. Tool-only change, SOLVE-gated, never CI.
 
@@ -92,6 +92,7 @@ import { LEVELS } from "../src/campaign/levels";
 import { evaluateObjectives } from "../src/campaign/objectives";
 import { createLevel, simulateCampaignLaunch } from "../src/campaign/simulate";
 import {
+  POWERS,
   REF_STEP_CAP,
   TSV_HEADER,
   candidateGrid,
@@ -121,10 +122,10 @@ describe("candidate grid", () => {
     expect(new Set(grid.map((c) => c.launchTick)).size).toBe(8);
   });
 
-  it("never exceeds the 200-unit drawn cap", () => {
-    for (const c of candidateGrid(firstLight)) {
-      expect(Math.hypot(c.dx, c.dy)).toBeLessThanOrEqual(200.0001);
-    }
+  it("spans 40 … 260 by 20, the axis the spec's bands were calibrated on", () => {
+    expect(POWERS).toEqual([40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260]);
+    const lengths = new Set(candidateGrid(firstLight).map((c) => Math.round(Math.hypot(c.dx, c.dy))));
+    expect([...lengths].sort((a, b) => a - b)).toEqual(POWERS);
   });
 });
 
@@ -237,8 +238,10 @@ import type { LaunchInput } from "../src/types";
 
 /** The fine aim grid (spec §1). */
 export const DIRECTIONS = 360;
-/** Twelve pulls from a gentle 20 to the 200-unit drawn cap (= MAX_SPEED / POWER_SCALE). */
-export const POWERS: number[] = Array.from({ length: 12 }, (_, i) => Math.round(20 + (i * 180) / 11));
+/** Twelve pulls, 40 … 260 by 20 — the axis the spec's bands were calibrated on
+ *  (2026-09-01 sweep). MAX_SPEED / POWER_SCALE = 200, so 220/240/260 are clamped
+ *  duplicates of 200: max-power shots weigh ×4. Kept for comparability. */
+export const POWERS: number[] = Array.from({ length: 12 }, (_, i) => 40 + i * 20);
 /** Board ticks sampled on moving levels. */
 export const MOVING_TICKS = 8;
 /** 12 s of playback at 60 Hz: the reference-flight ceiling (spec decision 4). */
