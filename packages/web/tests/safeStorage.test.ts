@@ -78,4 +78,20 @@ describe("safeStorage", () => {
     s.setItem("k", "new");
     expect(s.getItem("k")).toBe("new");
   });
+
+  it("works entirely in the overlay when both read and write throw (Safari private mode)", () => {
+    const s = safeStorage(throwingStorage({ read: true, write: true }));
+    expect(s.getItem("k")).toBeNull();
+    expect(() => s.setItem("k", "v")).not.toThrow();
+    expect(s.getItem("k")).toBe("v");
+  });
+
+  it("keeps a session's writes readable across a read throw and a write throw", () => {
+    const s = safeStorage(throwingStorage({ read: true, write: true }));
+    s.setItem("a", "1");
+    s.setItem("b", "2");
+    expect(s.getItem("a")).toBe("1");
+    expect(s.getItem("b")).toBe("2");
+    expect(s.getItem("c")).toBeNull();
+  });
 });

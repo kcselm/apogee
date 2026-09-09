@@ -8,6 +8,9 @@ export type AppStorage = Pick<Storage, "getItem" | "setItem">;
  * offered to the backing; every read checks the overlay first and then the
  * backing. A session is therefore self-consistent whatever the backing
  * does, and persisted values still come back when the backing works.
+ * The overlay also means a key this tab has written is never re-read from
+ * the backing, so a write from another tab to the same key is not seen
+ * here — accepted for a single-tab game.
  */
 export function safeStorage(backing: Storage | null): AppStorage {
   const overlay = new Map<string, string>();
