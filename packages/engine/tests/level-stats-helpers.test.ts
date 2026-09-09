@@ -3,6 +3,7 @@ import { LEVELS } from "../src/campaign/levels";
 import { evaluateObjectives } from "../src/campaign/objectives";
 import { createLevel, simulateCampaignLaunch } from "../src/campaign/simulate";
 import {
+  POWERS,
   REF_STEP_CAP,
   TSV_HEADER,
   candidateGrid,
@@ -32,10 +33,10 @@ describe("candidate grid", () => {
     expect(new Set(grid.map((c) => c.launchTick)).size).toBe(8);
   });
 
-  it("never exceeds the 200-unit drawn cap", () => {
-    for (const c of candidateGrid(firstLight)) {
-      expect(Math.hypot(c.dx, c.dy)).toBeLessThanOrEqual(200.0001);
-    }
+  it("spans 40 … 260 by 20, the axis the spec's bands were calibrated on", () => {
+    expect(POWERS).toEqual([40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240, 260]);
+    const lengths = new Set(candidateGrid(firstLight).map((c) => Math.round(Math.hypot(c.dx, c.dy))));
+    expect([...lengths].sort((a, b) => a - b)).toEqual(POWERS);
   });
 });
 

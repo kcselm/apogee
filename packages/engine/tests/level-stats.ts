@@ -14,8 +14,10 @@ import type { LaunchInput } from "../src/types";
 
 /** The fine aim grid (spec §1). */
 export const DIRECTIONS = 360;
-/** Twelve pulls from a gentle 20 to the 200-unit drawn cap (= MAX_SPEED / POWER_SCALE). */
-export const POWERS: number[] = Array.from({ length: 12 }, (_, i) => Math.round(20 + (i * 180) / 11));
+/** Twelve pulls, 40 … 260 by 20 — the axis the spec's bands were calibrated on
+ *  (2026-09-01 sweep). MAX_SPEED / POWER_SCALE = 200, so 220/240/260 are clamped
+ *  duplicates of 200: max-power shots weigh ×4. Kept for comparability. */
+export const POWERS: number[] = Array.from({ length: 12 }, (_, i) => 40 + i * 20);
 /** Board ticks sampled on moving levels. */
 export const MOVING_TICKS = 8;
 /** 12 s of playback at 60 Hz: the reference-flight ceiling (spec decision 4). */
