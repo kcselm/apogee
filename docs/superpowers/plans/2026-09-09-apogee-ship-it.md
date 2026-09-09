@@ -1070,7 +1070,7 @@ Cloudflare Pages at SITE_URL, GitHub Actions CI on main and PRs, README
 with hero image and live link, MIT license, scratch tests out of git and
 tsc, and safeStorage so storage failures never surface as errors.
 
-Sprint report in .superpowers/sdd/sprint4-sweep/report.md.
+Sprint report in .superpowers/sdd/2026-09-09-apogee-ship-it/ (local, gitignored).
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_018VCA3FTbkfMqByjoKBDp3r
