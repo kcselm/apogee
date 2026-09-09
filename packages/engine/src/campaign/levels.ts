@@ -227,8 +227,9 @@ export const LEVELS: Level[] = [
   // Ch 8-10 body radii are 96-200 on purpose: a brute-force sweep of the solver's
   // 8064-input grid shows nothing smaller casts an unreachable shadow (one r<=96
   // planet leaves the whole board reachable), so a lighter wall makes the wormhole
-  // optional and the ablation audit flags the level. R10: keep every planet-kind
-  // disc — a moon over its whole orbit — at least 12u clear of every blocker disc.
+  // optional and the ablation audit flags the level. Clearance rule (12u clearance
+  // = 2 × PROBE_RADIUS + 2): keep every planet-kind disc — a moon over its whole
+  // orbit — at least 12u clear of every blocker disc.
   {
     id: "8-1", name: "Through the Door",
     // Gate: the planet-and-two-guards wall makes (1520,272) ballistically unreachable.
@@ -243,13 +244,15 @@ export const LEVELS: Level[] = [
     id: "8-2", name: "Bent Passage",
     bodies: [planet(700, 340, 150), planet(700, 660, 150)],
     keys: [], goal: { pos: { x: 1488, y: 112 }, radius: 38 }, targets: [],
+    // Entry mouth sits below the pad line, at (520, 800) facing 200: gravity
+    // has to bend the shot down into it — it is not reachable on a straight line.
     portals: [makePortal(520, 800, 30, 200, 1), makePortal(1380, 112, 30, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "8-3", name: "Redirect",
-    // Wall with 50u seams (R10); the portal turns the shot ~70 deg down into the pocket.
+    // Wall with 50u seams (12u clearance = 2 × PROBE_RADIUS + 2); the portal turns the shot ~70 deg down into the pocket.
     bodies: [blocker(700, 150, 150), planet(700, 500, 150), blocker(700, 850, 150)],
     keys: [], goal: { pos: { x: 1520, y: 944 }, radius: 38 }, targets: [],
     portals: [makePortal(420, 620, 30, 200, 1), makePortal(1520, 830, 30, 90, 0)],
@@ -272,9 +275,10 @@ export const LEVELS: Level[] = [
   },
   {
     id: "9-2", name: "Split Marks",
-    // All-blocker wall (R10: a planet before an overlapping blocker lets probes land
-    // alive inside red); the lone planet is a pad-side world to bend off. One door
-    // per mark; both marks sit in the wall's shadow.
+    // All-blocker wall (12u clearance = 2 × PROBE_RADIUS + 2: a planet before an
+    // overlapping blocker lets probes land alive inside red); the lone planet is a
+    // pad-side world to bend off. One door per mark; both marks sit in the wall's
+    // shadow.
     bodies: [blocker(760, 170, 170), blocker(760, 500, 170), blocker(760, 830, 170), planet(400, 850, 90)],
     keys: [], goal: undefined,
     targets: [{ pos: { x: 1424, y: 368 }, radius: 26 }, { pos: { x: 1424, y: 624 }, radius: 26 }],

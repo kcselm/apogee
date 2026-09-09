@@ -5,6 +5,13 @@ import type { LaunchInput } from "../types";
  * level id. Filled by running the discovery tool:
  *   $env:SOLVE=1; pnpm --filter @apogee/engine exec vitest run discover-solutions
  * then pasting the printed sequences here. CI only REPLAYS these.
+ *
+ * These are the first grid hits the discovery tool found, not curated "intended"
+ * plays — the timed solver walks its input grid direction-major, so several
+ * entries (9-2's 2nd launch, 9-3, and the 1st launch of 10-1/10-2 and the 1st
+ * and 2nd of 10-3) fire with dx < 0, away from the objective, even though a
+ * forward-firing clear also exists. Fine for CI replay; don't read them as play
+ * guidance.
  */
 export const SOLUTIONS: Record<string, LaunchInput[]> = {
   "6-1": [{ dx: 68.93654271085457, dy: 12.155372436685123, launchTick: 240 }],

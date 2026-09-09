@@ -44,13 +44,13 @@ describe.skipIf(!process.env.SOLVE)("ablation audit — moving levels", () => {
   it("prints any level clearable without its mechanic", () => {
     for (const lvl of LEVELS) {
       if (!isMovingLevel(lvl)) continue;
-      const pair = twins(lvl);
-      if (pair.length === 0) {
+      const variants = twins(lvl);
+      if (variants.length === 0) {
         // eslint-disable-next-line no-console
         console.log(`${lvl.id}: sensor-motion level — audit n/a`);
         continue;
       }
-      for (const { label, level } of pair) {
+      for (const { label, level } of variants) {
         const bypass = findTimedSolution(level);
         // eslint-disable-next-line no-console
         console.log(
