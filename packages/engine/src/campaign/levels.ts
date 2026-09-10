@@ -65,7 +65,8 @@ export const LEVELS: Level[] = [
     id: "1-3", name: "Slingshot",
     // The planet sits on the launch line and is wide enough to swallow any
     // straight shot at the ring (the pad->goal segment passes 28 units inside
-    // its surface), so the only way out to the far corner is around it.
+    // its surface counting the probe radius, 23 without), so the only way out
+    // to the far corner is around it.
     bodies: [planet(760, 500, 112)],
     keys: [], goal: { pos: { x: 1440, y: 320 }, radius: 32 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
@@ -274,7 +275,9 @@ export const LEVELS: Level[] = [
     // The key sweeps OUTSIDE the ring: on the old 210 orbit no ring the arcs
     // could still reach after the gate stayed above 0.70 %, and every ring that
     // did sat on the key's own path, which collapses key and goal into one pass.
-    // Widened to 270 with the ring pulled inside it, 18 units clear of the path.
+    // Widened to 270 with the ring pulled inside it, leaving 18 units between the
+    // key's zone reach (orbit 270 - 26 - PROBE_RADIUS = 239 from the planet centre)
+    // and the ring's (184 + 32 + PROBE_RADIUS = 221).
     keys: [{ pos: { x: 820, y: 520 }, radius: 26, orbit: makeOrbit({ x: 820, y: 520 }, 270, 0, 1) }],
     goal: { pos: { x: 990, y: 590 }, radius: 32 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
@@ -285,12 +288,16 @@ export const LEVELS: Level[] = [
     bodies: [planet(760, 420, 70), planet(1040, 660, 72)],
     keys: [], goal: undefined,
     // Both marks GROW (a smaller disc would raise the 3★ share, which is what
-    // was out of band at 72 %), the static one drops off the caustic between the
-    // two worlds, and the moving one widens to a 230 orbit at two turns per
-    // period so its bullseye no longer lines up with the static mark's.
+    // was out of band at 72 %) and the static one drops off the caustic between
+    // the two worlds. It sits BELOW the right-hand world, not on it: at the old
+    // (1000,620) the mark's centre lay 15 u inside that planet's r72 surface, so
+    // the disc was drawn over the planet and could never be bullseyed.
+    // The orbit tightens 230 -> 140 as a pair with that move: with the mark at
+    // (1120,820) a 230 orbit measures 0.12-0.15 % clear / 41-55 % 3★ (both out of
+    // band), 200 sits on the 0.15 % floor, and 140 measures 0.35 % / 33 %.
     targets: [
-      { pos: { x: 1000, y: 620 }, radius: 30 },
-      { pos: { x: 760, y: 420 }, radius: 30, orbit: makeOrbit({ x: 760, y: 420 }, 230, 0, 2) },
+      { pos: { x: 1120, y: 820 }, radius: 32 },
+      { pos: { x: 760, y: 420 }, radius: 32, orbit: makeOrbit({ x: 760, y: 420 }, 140, 0, 2) },
     ],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "hit-all-targets" }], par: 1,
@@ -337,11 +344,11 @@ export const LEVELS: Level[] = [
     id: "8-3", name: "Redirect",
     // Wall with 50u seams (12u clearance = 2 × PROBE_RADIUS + 2); the portal turns the shot ~70 deg down into the pocket.
     bodies: [blocker(700, 150, 150), planet(700, 500, 150), blocker(700, 850, 150)],
-    // The ring is off the exit beam, 40u left and 24u short of where it used to sit
-    // directly under the mouth. Mouth radius is NOT the lever here: the exit is only
-    // 77u above the old ring, so the whole fan landed in it whatever the entry —
-    // r22 still measured 6.97 %. Sliding the ring out of the fall line is what takes
-    // it to the test band.
+    // The ring is off the exit beam, 40u left and 34u short of where it used to sit
+    // directly under the mouth at (1520,944). Mouth radius is NOT the lever here: the
+    // exit mouth (1520,830) stood 114u from that old ring's centre — 76u from its rim
+    // — so the whole fan landed in it whatever the entry, and r22 still measured
+    // 6.97 %. Sliding the ring out of the fall line is what takes it to the test band.
     keys: [], goal: { pos: { x: 1480, y: 910 }, radius: 38 }, targets: [],
     portals: [makePortal(420, 620, 30, 200, 1), makePortal(1520, 830, 30, 90, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
@@ -390,10 +397,10 @@ export const LEVELS: Level[] = [
     // All-blocker gauntlet, r180 so the discs overlap and leave no threadable seam.
     bodies: [blocker(640, 180, 180), blocker(640, 500, 180), blocker(640, 820, 180)],
     // Exit pulled 200u back to x=1000 and the ring dropped onto where the beam has
-    // fallen by x=1310. At the old (1200,496) the ring sat 59u in front of the mouth,
-    // so every probe that came through the door landed in it and no ring ANYWHERE on
-    // the board measured inside the test band; the extra 300u of travel is what lets
-    // the blockers' pull fan and drop the beam.
+    // fallen by x=1310. With the old mouth at (1200,496), the old ring at (1296,496)
+    // sat just 96u away centre-to-centre, so every probe that came through the door
+    // landed in it and no ring ANYWHERE on the board measured inside the test band;
+    // the extra 300u of travel is what lets the blockers' pull fan and drop the beam.
     keys: [], goal: { pos: { x: 1310, y: 710 }, radius: 40 }, targets: [],
     portals: [makePortal(400, 380, 28, 160, 1), makePortal(1000, 496, 28, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
@@ -417,7 +424,15 @@ export const LEVELS: Level[] = [
     // reference's first launch cannot bank precision the way 4-1's did; growing the
     // far mark is what pulls its own bullseye share off the 3★ cap.
     keys: [], goal: undefined,
-    targets: [{ pos: { x: 1296, y: 432 }, radius: 30 }, { pos: { x: 1520, y: 688 }, radius: 30 }],
+    // Both marks step radially out from the moon's orbit centre (1250,700) and grow
+    // 30 -> 32. The r190 moon reached 8.1 / 9.7 u inside their zones, where a mark is
+    // drawn over the moon and can never be bullseyed; 285 u of centre distance puts
+    // its full extension 3 u clear. Moving them out alone costs the reach that keeps
+    // this level in band (1.94 %, under the 2 % teach floor), so the radius pays it
+    // back. The ORBIT is deliberately not the lever: at 175 the far mark comes inside
+    // one-launch range, the reference collapses to a single launch, and the capstone
+    // stops being the par-2 level the chapter is built around.
+    targets: [{ pos: { x: 1298, y: 419 }, radius: 32 }, { pos: { x: 1535, y: 687 }, radius: 32 }],
     portals: [makePortal(400, 420, 34, 165, 1), makePortal(1100, 440, 28, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
     objectives: [{ kind: "hit-all-targets" }], par: 2,
@@ -456,7 +471,10 @@ export const LEVELS: Level[] = [
     // (0.15 %), and the mark to the far edge above the moon (0.14 %); the ring stays
     // where it was, in the moon's throw, at 0.13 %.
     keys: [{ pos: { x: 140, y: 60 }, radius: 30 }],
-    goal: { pos: { x: 1520, y: 880 }, radius: 36 },
+    // Ring pushed 7 u further down the same diagonal from the moon's orbit centre
+    // (1280,720): the r60 moon at full extension reached 2.6 u inside the ring's
+    // zone. 288.4 -> 295.7 centre distance, ~4.6 u clear.
+    goal: { pos: { x: 1526, y: 884 }, radius: 36 },
     targets: [{ pos: { x: 1560, y: 460 }, radius: 30 }],
     portals: [makePortal(430, 380, 26, 165, 1), makePortal(1120, 440, 26, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 7,
