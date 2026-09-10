@@ -209,9 +209,44 @@ Fine grid 360 × 12 (× 8 ticks on moving levels); forgiveness = clear1 % (par 1
 | 10-2 Clockwork Lock | 2 | twist | 6.04 | 31.32 | 125 | 260 | forgiveness above twist band (6.04 % > 2.00 %) |
 | 10-3 Event Horizon | 3 | test | 6.44 | 28.57 | 141 | 261 | forgiveness above test band (6.44 % > 0.70 %) |
 
-### After
+### After (2026-09-10, level-stats @ 92e4104)
 
-_Filled by Task 11._
+Same grid and columns as "before". 30 / 30 rows in band; every chapter ramps teach > twist > test; longest reference 389 steps (6.5 s); every ablation twin `mechanic required`.
+
+| Level | Par | Role | Forgiveness % | 3★ % | Ref steps | Max steps | Verdict |
+|---|---|---|---|---|---|---|---|
+| 1-1 First Light | 1 | teach | 3.50 | 25.83 | 94 | 2700 | in band |
+| 1-2 Two Worlds | 1 | twist | 1.67 | 23.61 | 111 | 2700 | in band |
+| 1-3 Slingshot | 1 | test | 0.65 | 35.71 | 123 | 2700 | in band |
+| 2-1 In The Way | 1 | teach | 2.62 | 26.55 | 87 | 2700 | in band |
+| 2-2 Bent Path | 1 | twist | 1.67 | 25.00 | 106 | 2700 | in band |
+| 2-3 Threading | 1 | test | 0.56 | 33.33 | 130 | 1900 | in band |
+| 3-1 The Key | 1 | teach | 3.17 | 18.98 | 81 | 2700 | in band |
+| 3-2 Hidden Key | 1 | twist | 1.04 | 22.22 | 100 | 2700 | in band |
+| 3-3 Key & Guard | 1 | test | 0.37 | 37.50 | 134 | 2700 | in band |
+| 4-1 Double Tap | 2 | teach | 4.77 | 22.83 | 247 | 2700 | in band |
+| 4-2 Spread | 2 | twist | 1.85 | 25.81 | 301 | 2025 | in band |
+| 4-3 Guarded Marks | 2 | test | 0.49 | 30.00 | 389 | 2700 | in band |
+| 5-1 Key & Marks | 2 | teach | 4.51 | 25.00 | 297 | 2700 | in band |
+| 5-2 Tight Squeeze | 1 | twist | 1.27 | 23.64 | 97 | 2700 | in band |
+| 5-3 Apogee | 2 | test | 0.51 | 27.19 | 319 | 2132 | in band |
+| 6-1 Moonrise | 1 | teach | 2.05 | 25.32 | 81 | 2700 | in band |
+| 6-2 Slingshot Tide | 1 | twist | 0.98 | 29.29 | 120 | 2700 | in band |
+| 6-3 Twin Moons | 1 | test | 0.62 | 30.05 | 135 | 2700 | in band |
+| 7-1 Moon & Guard | 1 | teach | 2.30 | 27.46 | 81 | 1900 | in band |
+| 7-2 Keyed Orbit | 1 | twist | 1.00 | 29.86 | 103 | 2700 | in band |
+| 7-3 Moving Marks | 1 | test | 0.42 | 31.94 | 76 | 1557 | in band |
+| 8-1 Through the Door | 1 | teach | 5.63 | 23.87 | 34 | 2700 | in band |
+| 8-2 Bent Passage | 1 | twist | 1.55 | 23.88 | 77 | 2700 | in band |
+| 8-3 Redirect | 1 | test | 0.28 | 33.33 | 29 | 435 | in band |
+| 9-1 Portal Key | 1 | teach | 4.28 | 17.84 | 32 | 2700 | in band |
+| 9-2 Split Marks | 2 | twist | 1.60 | 23.68 | 227 | 343 | in band |
+| 9-3 Gauntlet Gate | 1 | test | 0.53 | 26.09 | 165 | 330 | in band |
+| 10-1 Convergence | 2 | teach | 3.27 | 32.34 | 77 | 280 | in band |
+| 10-2 Clockwork Lock | 2 | twist | 1.14 | 31.32 | 233 | 260 | in band |
+| 10-3 Event Horizon | 3 | test | 0.27 | 21.74 | 247 | 261 | in band |
+
+**Exceptions:** None.
 
 ### Playtest notes
 
