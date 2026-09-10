@@ -106,8 +106,13 @@ export const LEVELS: Level[] = [
   {
     id: "3-1", name: "The Key",
     bodies: [planet(820, 520, 76)],
-    keys: [{ pos: { x: 480, y: 300 }, radius: 28 }],
-    goal: { pos: { x: 1180, y: 360 }, radius: 40 }, targets: [],
+    // Both rings moved onto the arc that swings over the planet: the ring at
+    // (1180,360) capped the level at 1.81 % clears BEFORE any key gate (2.04 %
+    // even at radius 44), so no key placement could reach the teach floor. The
+    // goal now sits in the planet's focus just past it, and the key is on the
+    // way there, so a shot that takes the key keeps most of its chance.
+    keys: [{ pos: { x: 920, y: 380 }, radius: 32 }],
+    goal: { pos: { x: 1000, y: 500 }, radius: 44 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
     objectives: [{ kind: "reach-goal" }], par: 1,
     intro: "Keys unlock the goal. Fly through the key first; it stays collected between launches.",
@@ -115,8 +120,12 @@ export const LEVELS: Level[] = [
   {
     id: "3-2", name: "Hidden Key",
     bodies: [planet(700, 420, 84), planet(1120, 640, 70)],
-    keys: [{ pos: { x: 760, y: 640 }, radius: 26 }],
-    goal: { pos: { x: 1320, y: 360 }, radius: 38 }, targets: [],
+    // The key moves into the corridor between the two worlds — still tucked out
+    // of the straight line, but on the arc that actually reaches the ring, so a
+    // detour for it costs a shot most of its chance instead of nearly all of it
+    // (the old spot at (760,640) kept only 13 % of the ring-reaching shots).
+    keys: [{ pos: { x: 960, y: 500 }, radius: 34 }],
+    goal: { pos: { x: 1320, y: 360 }, radius: 44 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
@@ -134,7 +143,12 @@ export const LEVELS: Level[] = [
     id: "4-1", name: "Double Tap",
     bodies: [planet(840, 520, 74)],
     keys: [], goal: undefined,
-    targets: [{ pos: { x: 1120, y: 320 }, radius: 26 }, { pos: { x: 1120, y: 720 }, radius: 26 }],
+    // Squared up above and below the planet instead of stacked in the caustic
+    // to its right. In the old column every mark radius 26-30 near x=1120 was
+    // bullseyed by a third to a half of the shots that reached it, so the
+    // reference's first launch banked a bullseye and every clearing second
+    // launch inherited 3★ (bestPrecision is a running max across launches).
+    targets: [{ pos: { x: 820, y: 160 }, radius: 30 }, { pos: { x: 820, y: 880 }, radius: 30 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "hit-all-targets" }], par: 2,
     intro: "Marks: pass a probe through every one. Landed probes stay on the board.",
@@ -143,15 +157,26 @@ export const LEVELS: Level[] = [
     id: "4-2", name: "Spread",
     bodies: [planet(700, 380, 70), planet(1000, 680, 74)],
     keys: [], goal: undefined,
-    targets: [{ pos: { x: 520, y: 700 }, radius: 24 }, { pos: { x: 1280, y: 360 }, radius: 24 }, { pos: { x: 1300, y: 720 }, radius: 24 }],
+    // All three marks pushed out past the far worlds. Anywhere nearer, a mark
+    // is touched by 1.5-3 % of the grid on its own, and three of those union to
+    // well over the 2 % twist cap — 1.67 % is the lowest reachable union on this
+    // layout. The top pair lines up on one arc (that is what makes par 2
+    // possible); the low mark needs its own launch.
+    targets: [{ pos: { x: 1400, y: 160 }, radius: 22 }, { pos: { x: 1500, y: 220 }, radius: 22 }, { pos: { x: 1500, y: 860 }, radius: 22 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "hit-all-targets" }], par: 2,
   },
   {
     id: "4-3", name: "Guarded Marks",
-    bodies: [blocker(720, 520, 64), planet(1100, 520, 78)],
+    // The guard moves onto the launch line itself. Out at (720,520) it shades
+    // almost nothing from the pad: the rarest mark anywhere on the board still
+    // took 0.79 % of the grid, so two of them could not fit under the 0.70 %
+    // test cap however small or however placed. Growing it in place does not
+    // help either (radius 140/160/180/200 all leave the cheapest pair over the
+    // cap); at x=260 it hides the far edge, which is where the marks now are.
+    bodies: [blocker(260, 500, 64), planet(1100, 520, 78)],
     keys: [], goal: undefined,
-    targets: [{ pos: { x: 980, y: 300 }, radius: 24 }, { pos: { x: 980, y: 740 }, radius: 24 }],
+    targets: [{ pos: { x: 1540, y: 200 }, radius: 22 }, { pos: { x: 1540, y: 780 }, radius: 22 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "hit-all-targets" }], par: 2,
   },
@@ -170,17 +195,27 @@ export const LEVELS: Level[] = [
   {
     id: "5-2", name: "Tight Squeeze",
     bodies: [blocker(560, 420, 56), blocker(700, 700, 56), planet(1080, 500, 82)],
-    keys: [{ pos: { x: 520, y: 600 }, radius: 26 }],
-    goal: { pos: { x: 1260, y: 360 }, radius: 36 }, targets: [],
+    // The key moves out of the slot itself and onto the channel just past it,
+    // and the ring off the caustic behind the planet: on the old caustic spot
+    // (1260,360) every goal radius 32-44 left 3★ at 29.7-41.2 %, and the key
+    // in the slot kept only a ninth of the shots that reached the ring.
+    keys: [{ pos: { x: 840, y: 420 }, radius: 36 }],
+    goal: { pos: { x: 1320, y: 520 }, radius: 44 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "5-3", name: "Apogee",
-    bodies: [blocker(620, 460, 58), planet(940, 640, 78), blocker(1180, 380, 54)],
-    keys: [{ pos: { x: 500, y: 700 }, radius: 26 }],
-    goal: { pos: { x: 1360, y: 640 }, radius: 36 },
-    targets: [{ pos: { x: 900, y: 280 }, radius: 24 }],
+    // The far guard comes back to the pad. With it out at (1180,380) the
+    // cheapest sensor anywhere on the board was still touched by 0.67 % of the
+    // grid, so a key and a mark together could not fit under the 0.70 % test
+    // cap; from (220,560) it shades most of the board and the pair costs
+    // 0.51 %. Key and mark ride the same high arc — that is what keeps par at
+    // two — and the ring under the planet needs its own launch.
+    bodies: [blocker(620, 460, 58), planet(940, 640, 78), blocker(220, 560, 54)],
+    keys: [{ pos: { x: 1260, y: 100 }, radius: 26 }],
+    goal: { pos: { x: 1060, y: 820 }, radius: 44 },
+    targets: [{ pos: { x: 1500, y: 180 }, radius: 30 }],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
     objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], par: 2,
   },
