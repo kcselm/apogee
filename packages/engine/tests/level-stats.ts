@@ -167,9 +167,7 @@ export function levelStats(level: Level, grid: LaunchInput[] = candidateGrid(lev
   }
   const ref = referenceSequence(level, grid);
   let star3: number | null = null;
-  if (ref === null) {
-    star3 = clears === 0 ? null : star3Clears / clears;
-  } else if (ref.seq.length <= 1) {
+  if (ref === null || ref.seq.length <= 1) {
     star3 = clears === 0 ? null : star3Clears / clears;
   } else {
     // Play the reference's earlier launches, then sweep the last one (spec §1, star3 on par-2).

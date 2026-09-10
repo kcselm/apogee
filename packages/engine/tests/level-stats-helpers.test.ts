@@ -58,6 +58,21 @@ describe("reference sequence", () => {
     expect(ref!.steps).toBeGreaterThan(0);
   });
 
+  it("finds a two-launch reference on a par-2 level and measures 3★ on the last launch", () => {
+    const doubleTap = LEVELS.find((l) => l.id === "4-1")!;
+    const grid = candidateGrid(doubleTap, COARSE);
+    const ref = referenceSequence(doubleTap, grid);
+    expect(ref).not.toBeNull();
+    expect(ref!.seq.length).toBe(2);
+    let s = createLevel(doubleTap);
+    for (const input of ref!.seq) s = simulateCampaignLaunch(s, input).state;
+    expect(evaluateObjectives(s).cleared).toBe(true);
+    const stats = levelStats(doubleTap, grid);
+    expect(stats.clear1).toBe(0);
+    expect(stats.progress).toBeGreaterThan(0);
+    expect(stats.star3).not.toBeNull();
+  });
+
   it("returns null when nothing on the grid clears within the depth", () => {
     const grid = candidateGrid(firstLight, { directions: 4, powers: [20] });
     expect(referenceSequence(firstLight, grid, 1)).toBeNull();

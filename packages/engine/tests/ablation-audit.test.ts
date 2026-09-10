@@ -43,8 +43,8 @@ function twins(lvl: Level): { label: string; level: Level }[] {
 //   Subset: $env:LEVELS="8-1,8-2" (same as level-stats).
 describe.skipIf(!process.env.SOLVE)("ablation audit — moving levels", () => {
   it("prints any level clearable without its mechanic", () => {
+    const only = process.env.LEVELS?.split(",").map((s) => s.trim()).filter(Boolean);
     for (const lvl of LEVELS) {
-      const only = process.env.LEVELS?.split(",").map((s) => s.trim()).filter(Boolean);
       if (only && only.length > 0 && !only.includes(lvl.id)) continue;
       if (!isMovingLevel(lvl)) continue;
       const variants = twins(lvl);
