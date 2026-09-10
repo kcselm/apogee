@@ -122,9 +122,25 @@ canvas {
 }
 .home button:active, .actions button:active { transform: translateY(1px); }
 .actions { display: flex; gap: 12px; justify-content: center; margin-top: 12px; }
+.chapters { display: flex; flex-direction: column; gap: 22px; max-width: 1100px; width: 100%; }
+.chapter { display: flex; flex-direction: column; gap: 10px; }
+.chapter-head {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding-bottom: 4px; border-bottom: 1px solid rgba(128, 170, 230, 0.12);
+}
+.chapter-title { letter-spacing: 0.14em; font-weight: 700; text-transform: uppercase; font-size: 0.85rem; }
+.chapter-mechanic { color: var(--muted); font-size: 0.85rem; }
 .level-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px; max-width: 1100px; width: 100%;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px; width: 100%;
+}
+/* Placed after the base .level-grid rule (not in the earlier 480px block above)
+   so this override actually wins the cascade at equal specificity: an
+   @media-scoped rule earlier in the file loses to a later, unscoped rule of
+   the same specificity even while its condition matches. */
+@media (max-width: 480px) {
+  .level-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .chapters { gap: 18px; }
 }
 .level-tile {
   display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-height: 92px;
