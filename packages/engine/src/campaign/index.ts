@@ -7,4 +7,5 @@ export { allObjectivesMet, evaluateObjectives, isLevelOver } from "./objectives"
 export { precisionPoints, starRating } from "./scoring";
 export { makePortal, portalExitRotation, rotateVec } from "./portal";
 export { LEVELS, isMovingLevel } from "./levels";
+export { CHAPTERS, type Chapter } from "./chapters";
 export { SOLUTIONS } from "./solutions";
