@@ -224,7 +224,12 @@ export const LEVELS: Level[] = [
   {
     id: "6-1", name: "Moonrise",
     bodies: [planet(640, 500, 110), moon(640, 500, 80, 280, 0, 1)],
-    keys: [], goal: { pos: { x: 1296, y: 400 }, radius: 40 }, targets: [],
+    // Pulled back onto the arc the moon throws, on the launch line. Radius alone
+    // cannot open the teaching level up (every radius 32-44 at the old spot tops
+    // out at 1.84 %), and the ring cannot go further in: this is the ONLY ring
+    // the sweep found that clears the 2 % floor while still needing the moon's
+    // pull — one unit wider and a moon-ablated shot reaches it.
+    keys: [], goal: { pos: { x: 1220, y: 500 }, radius: 43 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
     intro: "Moons orbit on a fixed clock. Their pull moves; time your launch.",
@@ -239,7 +244,12 @@ export const LEVELS: Level[] = [
   {
     id: "6-3", name: "Twin Moons",
     bodies: [planet(700, 500, 120), moon(700, 500, 60, 200, 0, 1), moon(700, 500, 60, 340, 0.5, -1)],
-    keys: [], goal: { pos: { x: 1264, y: 816 }, radius: 38 }, targets: [],
+    // Slid out to the far edge, past where the counter-rotating pair still
+    // funnels shots. Shrinking in place cannot reach the test cap (r32 at the
+    // old spot still clears 1.00 %), and of the 1 944 rings swept out here only
+    // nine are both under 0.70 % and still unreachable with the moons' pull
+    // deleted; this is the roomiest of those that stays fully on the board.
+    keys: [], goal: { pos: { x: 1560, y: 740 }, radius: 36 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
@@ -247,8 +257,13 @@ export const LEVELS: Level[] = [
   // --- Chapter 7: moons meet blockers/keys/targets (19-21) ---
   {
     id: "7-1", name: "Moon & Guard",
-    bodies: [blocker(520, 500, 110), planet(900, 500, 96), moon(900, 500, 60, 180, 0, 1)],
-    keys: [], goal: { pos: { x: 1552, y: 496 }, radius: 38 }, targets: [],
+    // The moon now outweighs the planet it circles, which is what makes its pull
+    // load-bearing: with the old r60 moon no ring anywhere reached the 2 % teach
+    // floor while still failing the ablation twin (ceiling 1.26 %). Guard slid
+    // back to 460 so the wider orbit keeps its 12-unit clearance — the moon's
+    // closest approach leaves 34 units.
+    bodies: [blocker(460, 500, 110), planet(900, 500, 80), moon(900, 500, 96, 200, 0, 1)],
+    keys: [], goal: { pos: { x: 1250, y: 490 }, radius: 44 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
     intro: "Moons meet guards, keys, and marks. The preview is honest; watch the clock.",
@@ -256,8 +271,12 @@ export const LEVELS: Level[] = [
   {
     id: "7-2", name: "Keyed Orbit",
     bodies: [planet(820, 520, 76)],
-    keys: [{ pos: { x: 820, y: 520 }, radius: 26, orbit: makeOrbit({ x: 820, y: 520 }, 210, 0, 1) }],
-    goal: { pos: { x: 1250, y: 360 }, radius: 38 }, targets: [],
+    // The key sweeps OUTSIDE the ring: on the old 210 orbit no ring the arcs
+    // could still reach after the gate stayed above 0.70 %, and every ring that
+    // did sat on the key's own path, which collapses key and goal into one pass.
+    // Widened to 270 with the ring pulled inside it, 18 units clear of the path.
+    keys: [{ pos: { x: 820, y: 520 }, radius: 26, orbit: makeOrbit({ x: 820, y: 520 }, 270, 0, 1) }],
+    goal: { pos: { x: 990, y: 590 }, radius: 32 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
@@ -265,9 +284,13 @@ export const LEVELS: Level[] = [
     id: "7-3", name: "Moving Marks",
     bodies: [planet(760, 420, 70), planet(1040, 660, 72)],
     keys: [], goal: undefined,
+    // Both marks GROW (a smaller disc would raise the 3★ share, which is what
+    // was out of band at 72 %), the static one drops off the caustic between the
+    // two worlds, and the moving one widens to a 230 orbit at two turns per
+    // period so its bullseye no longer lines up with the static mark's.
     targets: [
-      { pos: { x: 1220, y: 360 }, radius: 26 },
-      { pos: { x: 760, y: 420 }, radius: 24, orbit: makeOrbit({ x: 760, y: 420 }, 170, 0, 1) },
+      { pos: { x: 1000, y: 620 }, radius: 30 },
+      { pos: { x: 760, y: 420 }, radius: 30, orbit: makeOrbit({ x: 760, y: 420 }, 230, 0, 2) },
     ],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "hit-all-targets" }], par: 1,
