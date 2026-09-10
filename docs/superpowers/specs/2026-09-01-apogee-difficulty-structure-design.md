@@ -172,8 +172,50 @@ Portrait: header spans the width; tiles wrap two-per-row as today.
 
 ## Section 7 — Tuning record
 
-Filled at the end of the sprint: the "before" and "after" sweep tables, and the playtest notes
-that drove any deviation from Section 2.
+### Before (2026-09-09, level-stats @ 92e4104)
+
+Fine grid 360 × 12 (× 8 ticks on moving levels); forgiveness = clear1 % (par 1) or progress % (par 2+); 3★ % among par clears; ref = shortest-playback clearing sequence within par.
+
+| Level | Par | Role | Forgiveness % | 3★ % | Ref steps | Max steps | Verdict |
+|---|---|---|---|---|---|---|---|
+| 1-1 First Light | 1 | teach | 3.17 | 48.91 | 96 | 2700 | 3★ above band (48.91 % > 40.00 %) |
+| 1-2 Two Worlds | 1 | twist | 2.38 | 26.21 | 104 | 2700 | forgiveness above twist band (2.38 % > 2.00 %) |
+| 1-3 Slingshot | 1 | test | 5.72 | 29.15 | 52 | 2700 | forgiveness above test band (5.72 % > 0.70 %) |
+| 2-1 In The Way | 1 | teach | 2.62 | 26.55 | 87 | 2700 | in band |
+| 2-2 Bent Path | 1 | twist | 2.06 | 49.44 | 98 | 2700 | forgiveness above twist band (2.06 % > 2.00 %); 3★ above band (49.44 % > 40.00 %) |
+| 2-3 Threading | 1 | test | 2.04 | 29.55 | 90 | 2700 | forgiveness above test band (2.04 % > 0.70 %) |
+| 3-1 The Key | 1 | teach | 0.21 | 33.33 | 133 | 2700 | forgiveness below teach band (0.21 % < 2.00 %) |
+| 3-2 Hidden Key | 1 | twist | 0.23 | 50.00 | 157 | 2700 | forgiveness below twist band (0.23 % < 0.70 %); 3★ above band (50.00 % > 40.00 %) |
+| 3-3 Key & Guard | 1 | test | 0.37 | 37.50 | 134 | 2700 | in band |
+| 4-1 Double Tap | 2 | teach | 2.34 | 100.00 | 258 | 2700 | 3★ above band (100.00 % > 40.00 %) |
+| 4-2 Spread | 2 | twist | 5.44 | 100.00 | 261 | 2025 | forgiveness above twist band (5.44 % > 2.00 %); 3★ above band (100.00 % > 40.00 %) |
+| 4-3 Guarded Marks | 2 | test | 4.79 | 48.11 | 237 | 2700 | forgiveness above test band (4.79 % > 0.70 %); 3★ above band (48.11 % > 40.00 %) |
+| 5-1 Key & Marks | 2 | teach | 4.51 | 25.00 | 297 | 2700 | in band |
+| 5-2 Tight Squeeze | 1 | twist | 0.28 | 41.67 | 126 | 2700 | forgiveness below twist band (0.28 % < 0.70 %); 3★ above band (41.67 % > 40.00 %) |
+| 5-3 Apogee | 2 | test | 6.78 | 50.00 | 202 | 2463 | forgiveness above test band (6.78 % > 0.70 %); 3★ above band (50.00 % > 40.00 %) |
+| 6-1 Moonrise | 1 | teach | 1.61 | 28.90 | 89 | 2700 | forgiveness below teach band (1.61 % < 2.00 %) |
+| 6-2 Slingshot Tide | 1 | twist | 0.98 | 29.29 | 120 | 2700 | in band |
+| 6-3 Twin Moons | 1 | test | 1.11 | 27.79 | 92 | 2700 | forgiveness above test band (1.11 % > 0.70 %) |
+| 7-1 Moon & Guard | 1 | teach | 0.78 | 33.58 | 125 | 2700 | forgiveness below teach band (0.78 % < 2.00 %) |
+| 7-2 Keyed Orbit | 1 | twist | 0.11 | 34.21 | 104 | 2700 | forgiveness below twist band (0.11 % < 0.70 %) |
+| 7-3 Moving Marks | 1 | test | 0.24 | 71.95 | 94 | 1557 | 3★ above band (71.95 % > 40.00 %) |
+| 8-1 Through the Door | 1 | teach | 8.61 | 97.31 | 28 | 2700 | forgiveness above teach band (8.61 % > 6.00 %); 3★ above band (97.31 % > 40.00 %) |
+| 8-2 Bent Passage | 1 | twist | 3.73 | 40.37 | 42 | 2700 | forgiveness above twist band (3.73 % > 2.00 %); 3★ above band (40.37 % > 40.00 %) |
+| 8-3 Redirect | 1 | test | 9.42 | 37.59 | 29 | 435 | forgiveness above test band (9.42 % > 0.70 %) |
+| 9-1 Portal Key | 1 | teach | 4.28 | 43.78 | 31 | 2700 | 3★ above band (43.78 % > 40.00 %) |
+| 9-2 Split Marks | 2 | twist | 19.49 | 75.74 | 83 | 171 | forgiveness above twist band (19.49 % > 2.00 %); 3★ above band (75.74 % > 40.00 %) |
+| 9-3 Gauntlet Gate | 1 | test | 10.37 | 40.18 | 23 | 140 | forgiveness above test band (10.37 % > 0.70 %); 3★ above band (40.18 % > 40.00 %) |
+| 10-1 Convergence | 2 | teach | 1.66 | 40.47 | 79 | 280 | forgiveness below teach band (1.66 % < 2.00 %); 3★ above band (40.47 % > 40.00 %) |
+| 10-2 Clockwork Lock | 2 | twist | 6.04 | 31.32 | 125 | 260 | forgiveness above twist band (6.04 % > 2.00 %) |
+| 10-3 Event Horizon | 3 | test | 6.44 | 28.57 | 141 | 261 | forgiveness above test band (6.44 % > 0.70 %) |
+
+### After
+
+_Filled by Task 11._
+
+### Playtest notes
+
+_Filled by Task 12._
 
 ## Out of scope
 
