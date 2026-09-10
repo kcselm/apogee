@@ -43,7 +43,11 @@ export const LEVELS: Level[] = [
   {
     id: "1-1", name: "First Light",
     bodies: [planet(800, 520, 80)],
-    keys: [], goal: { pos: { x: 1180, y: 360 }, radius: 40 }, targets: [],
+    // Held 20 units back off the caustic behind the planet. At x=1180 the slung
+    // paths bunch so tightly that half of all clears landed a bullseye and the
+    // opening level handed out 3★ automatically; a smaller ring only makes that
+    // ratio worse, so the ring moves instead.
+    keys: [], goal: { pos: { x: 1160, y: 360 }, radius: 40 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
     objectives: [{ kind: "reach-goal" }], par: 1,
     intro: "Planets pull on your probe. Bend the shot into the goal ring.",
@@ -51,14 +55,19 @@ export const LEVELS: Level[] = [
   {
     id: "1-2", name: "Two Worlds",
     bodies: [planet(620, 360, 64), planet(1040, 640, 72)],
-    keys: [], goal: { pos: { x: 1320, y: 360 }, radius: 38 }, targets: [],
+    // Pushed further along the same outbound arc, past the point where the two
+    // pulls still overlap, so the shot has to commit to one side.
+    keys: [], goal: { pos: { x: 1380, y: 300 }, radius: 36 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 3,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "1-3", name: "Slingshot",
-    bodies: [planet(760, 500, 96)],
-    keys: [], goal: { pos: { x: 700, y: 640 }, radius: 36 }, targets: [],
+    // The planet sits on the launch line and is wide enough to swallow any
+    // straight shot at the ring (the pad->goal segment passes 28 units inside
+    // its surface), so the only way out to the far corner is around it.
+    bodies: [planet(760, 500, 112)],
+    keys: [], goal: { pos: { x: 1440, y: 320 }, radius: 32 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
@@ -75,14 +84,20 @@ export const LEVELS: Level[] = [
   {
     id: "2-2", name: "Bent Path",
     bodies: [planet(640, 360, 80), blocker(980, 560, 60)],
-    keys: [], goal: { pos: { x: 1300, y: 420 }, radius: 38 }, targets: [],
+    // Further past the blocker and a touch tighter: at (1300,420) the bent
+    // paths reconverge, so nearly half of all clears were bullseyes.
+    keys: [], goal: { pos: { x: 1360, y: 380 }, radius: 34 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
   {
     id: "2-3", name: "Threading",
-    bodies: [blocker(560, 420, 56), blocker(720, 700, 56), planet(1080, 520, 84)],
-    keys: [], goal: { pos: { x: 1240, y: 360 }, radius: 38 }, targets: [],
+    // The corridor is the two blockers, pulled in front of the pad and squared
+    // up on it: a 78-unit slot at y 461..539 instead of the old 210-unit
+    // diagonal gap. Staggered further out they can simply be flown around —
+    // even at radius 80 in the old spots the level bottoms out at 1.20 % clears.
+    bodies: [blocker(340, 400, 56), blocker(340, 600, 56), planet(1080, 520, 84)],
+    keys: [], goal: { pos: { x: 1460, y: 260 }, radius: 38 }, targets: [],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
