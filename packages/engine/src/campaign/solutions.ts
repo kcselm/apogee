@@ -1,45 +1,42 @@
 import type { LaunchInput } from "../types";
 
 /**
- * Known-good clearing input sequences (≥1★) for moving/portal levels, keyed by
- * level id. Filled by running the discovery tool:
- *   $env:SOLVE=1; pnpm --filter @apogee/engine exec vitest run discover-solutions
- * then pasting the printed sequences here. CI only REPLAYS these.
- *
- * These are the first grid hits the discovery tool found, not curated "intended"
- * plays — the timed solver walks its input grid direction-major, so several
- * entries (9-2's 2nd launch, 9-3, and the 1st launch of 10-1/10-2 and the 1st
- * and 2nd of 10-3) fire with dx < 0, away from the objective, even though a
- * forward-firing clear also exists. Fine for CI replay; don't read them as play
- * guidance.
+ * The reference shot for every level: the shortest-playback clearing sequence
+ * within par on the fine aim grid, as measured by the sweep tool
+ *   $env:SOLVE=1; pnpm --filter @apogee/engine exec vitest run level-stats
+ * (`ref input` column). CI only REPLAYS these; the sweep is the source.
+ * Static levels carry no launchTick; moving levels do. Each entry's length is
+ * the level's par.
  */
 export const SOLUTIONS: Record<string, LaunchInput[]> = {
-  "6-1": [{ dx: 68.93654271085457, dy: 12.155372436685123, launchTick: 240 }],
-  "6-2": [{ dx: 155.56349186104046, dy: 155.56349186104043, launchTick: 60 }],
-  "6-3": [{ dx: 163.13540166659698, dy: 76.0712871133259, launchTick: 30 }],
-  "7-1": [{ dx: 107.24622203665692, dy: 89.9902653561155, launchTick: 390 }],
-  "7-2": [{ dx: 212.50368178359503, dy: 56.940189922554566, launchTick: 150 }],
-  "7-3": [{ dx: 219.162833580184, dy: 19.174263404484797, launchTick: 120 }],
-  "8-1": [{ dx: 40, dy: 0, launchTick: 0 }],
-  "8-2": [{ dx: 141.41327413103866, dy: 168.52977748617516, launchTick: 0 }],
-  "8-3": [{ dx: 206.73237657289985, dy: 75.24443153164712, launchTick: 0 }],
-  "9-1": [{ dx: 163.13540166659698, dy: 76.0712871133259, launchTick: 0 }],
-  "9-2": [
-    { dx: 67.61480784023477, dy: 18.117333157176454, launchTick: 0 },
-    { dx: -212.50368178359506, dy: -56.940189922554474, launchTick: 0 },
-  ],
-  "9-3": [{ dx: -177.26539554219744, dy: -31.256671980047486, launchTick: 0 }],
-  "10-1": [
-    { dx: -219.162833580184, dy: -19.174263404484748, launchTick: 180 },
-    { dx: 114.68128620045881, dy: -80.30070108914651, launchTick: 0 },
-  ],
-  "10-2": [
-    { dx: -173.8666487320323, dy: -46.587428118453666, launchTick: 0 },
-    { dx: 81.91520442889917, dy: 57.35764363510461, launchTick: 120 },
-  ],
-  "10-3": [
-    { dx: -199.387713148063, dy: -92.97601758295384, launchTick: 0 },
-    { dx: -216.65770566268577, dy: -38.2025990867247, launchTick: 30 },
-    { dx: 98.99494936611663, dy: -98.99494936611667, launchTick: 0 },
-  ],
+  "1-1": [{"dx":187.93852415718163,"dy":-68.4040286651339}],
+  "1-2": [{"dx":199.51281005196483,"dy":13.95129474882506}],
+  "1-3": [{"dx":193.18516525781365,"dy":51.76380902050415}],
+  "2-1": [{"dx":191.2609511926071,"dy":58.47434094454734}],
+  "2-2": [{"dx":197.53766811902756,"dy":31.286893008046174}],
+  "2-3": [{"dx":199.87816540381914,"dy":6.979899340500194}],
+  "3-1": [{"dx":125.83116648188336,"dy":-61.37196055047089}],
+  "3-2": [{"dx":87.46197071393958,"dy":48.480962024633705}],
+  "3-3": [{"dx":120.0034220982957,"dy":-72.10533048740763}],
+  "4-1": [{"dx":189.10371511986338,"dy":-65.11363089143134},{"dx":186.71608529944035,"dy":71.67358990906006}],
+  "4-2": [{"dx":199.23893961834912,"dy":17.431148549531635},{"dx":174.92394142787916,"dy":96.96192404926741}],
+  "4-3": [{"dx":80.90169943749473,"dy":-58.778525229247336},{"dx":182.70909152852016,"dy":81.34732861516002}],
+  "5-1": [{"dx":198.05361374831406,"dy":-27.834620192013176},{"dx":124.74091338637149,"dy":-63.55866996353657}],
+  "5-2": [{"dx":115.35140351259827,"dy":33.0764826980399}],
+  "5-3": [{"dx":179.75880925983336,"dy":-87.67422935781556},{"dx":173.20508075688775,"dy":99.99999999999999}],
+  "6-1": [{"dx":193.18516525781365,"dy":-51.763809020504134,"launchTick":300}],
+  "6-2": [{"dx":159.72710200945858,"dy":-120.36300463040965,"launchTick":120}],
+  "6-3": [{"dx":169.6096192312852,"dy":105.98385284664099,"launchTick":60}],
+  "7-1": [{"dx":132.64601160880667,"dy":89.47086455531948,"launchTick":360}],
+  "7-2": [{"dx":189.10371511986338,"dy":-65.11363089143134,"launchTick":300}],
+  "7-3": [{"dx":199.23893961834912,"dy":17.431148549531635,"launchTick":120}],
+  "8-1": [{"dx":200,"dy":0,"launchTick":0}],
+  "8-2": [{"dx":131.21180579810147,"dy":150.94191604455438,"launchTick":0}],
+  "8-3": [{"dx":187.9385241571817,"dy":68.40402866513374,"launchTick":0}],
+  "9-1": [{"dx":181.26155740732997,"dy":84.52365234813989,"launchTick":0}],
+  "9-2": [{"dx":194.87401295704706,"dy":44.990210868773,"launchTick":0},{"dx":167.7341135890848,"dy":-108.9278070030054,"launchTick":0}],
+  "9-3": [{"dx":181.26155740733,"dy":-84.52365234813985,"launchTick":0}],
+  "10-1": [{"dx":179.75880925983336,"dy":-87.67422935781556,"launchTick":360},{"dx":181.26155740733,"dy":-84.52365234813985,"launchTick":420}],
+  "10-2": [{"dx":141.42135623730948,"dy":-141.42135623730954,"launchTick":0},{"dx":80.90169943749474,"dy":58.778525229247315,"launchTick":120}],
+  "10-3": [{"dx":55.1274711633997,"dy":-192.2523391876638,"launchTick":60},{"dx":158.93056671460687,"dy":-84.50488130146034,"launchTick":60},{"dx":184.10097069048805,"dy":-78.14622569785477,"launchTick":360}],
 };

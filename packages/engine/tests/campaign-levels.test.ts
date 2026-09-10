@@ -3,7 +3,6 @@ import { LEVELS, isMovingLevel } from "../src/campaign/levels";
 import { evaluateObjectives } from "../src/campaign/objectives";
 import { createLevel, simulateCampaignLaunch } from "../src/campaign/simulate";
 import { SOLUTIONS } from "../src/campaign/solutions";
-import { findSolution } from "./campaign-solver";
 
 describe("authored levels", () => {
   it("every level has a unique id", () => {
@@ -43,26 +42,23 @@ describe("authored levels", () => {
     }
   });
 
-  it("every STATIC level is solvable within its launch budget (brute force)", () => {
+  it("every level has a stored reference that clears within budget and par", () => {
     for (const lvl of LEVELS) {
-      if (isMovingLevel(lvl)) continue;
-      const solution = findSolution(lvl);
-      expect(solution, `level ${lvl.id} is unsolvable — adjust its layout`).not.toBeNull();
-      expect(solution!.length, lvl.id).toBeLessThanOrEqual(lvl.launchBudget);
-      expect(solution!.length, `${lvl.id} par is aspirational`).toBeLessThanOrEqual(lvl.par);
-    }
-  }, 30_000);
-
-  it("every MOVING level clears when its stored solution is replayed", () => {
-    for (const lvl of LEVELS) {
-      if (!isMovingLevel(lvl)) continue;
       const seq = SOLUTIONS[lvl.id];
-      expect(seq, `no stored solution for ${lvl.id} — run SOLVE=1 discover-solutions`).toBeDefined();
-      expect(seq!.length, `${lvl.id} solution exceeds budget`).toBeLessThanOrEqual(lvl.launchBudget);
+      expect(seq, `no reference for ${lvl.id} — run SOLVE=1 level-stats and paste its ref input`).toBeDefined();
+      expect(seq!.length, `${lvl.id} reference exceeds budget`).toBeLessThanOrEqual(lvl.launchBudget);
       expect(seq!.length, `${lvl.id} par is aspirational`).toBeLessThanOrEqual(lvl.par);
+      if (!isMovingLevel(lvl)) {
+        expect(seq!.every((i) => i.launchTick === undefined), `${lvl.id} is static; drop launchTick`).toBe(true);
+      }
       let s = createLevel(lvl);
       for (const input of seq!) s = simulateCampaignLaunch(s, input).state;
-      expect(evaluateObjectives(s).cleared, `stored solution for ${lvl.id} no longer clears`).toBe(true);
+      expect(evaluateObjectives(s).cleared, `reference for ${lvl.id} no longer clears`).toBe(true);
     }
+  });
+
+  it("no reference is stored for an id that is not a level", () => {
+    const ids = new Set(LEVELS.map((l) => l.id));
+    for (const id of Object.keys(SOLUTIONS)) expect(ids.has(id), `stale SOLUTIONS entry ${id}`).toBe(true);
   });
 });
