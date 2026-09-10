@@ -563,8 +563,8 @@ Run (bash, from the repo root; allow 15 minutes):
 
 ```bash
 mkdir -p .superpowers/sdd/2026-09-09-apogee-difficulty-structure
-SOLVE=1 pnpm --filter @apogee/engine exec vitest run level-stats 2>&1 | grep -E $'^(id|[0-9]+-[0-9]+)\t' > .superpowers/sdd/2026-09-09-apogee-difficulty-structure/before.tsv
-SOLVE=1 pnpm --filter @apogee/engine exec vitest run ablation-audit 2>&1 | grep -E '^[0-9]+-[0-9]+' > .superpowers/sdd/2026-09-09-apogee-difficulty-structure/ablation-before.txt
+SOLVE=1 pnpm --filter @apogee/engine exec vitest run level-stats 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E $'^(id|[0-9]+-[0-9]+)\t' > .superpowers/sdd/2026-09-09-apogee-difficulty-structure/before.tsv
+SOLVE=1 pnpm --filter @apogee/engine exec vitest run ablation-audit 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E '^[0-9]+-[0-9]+' > .superpowers/sdd/2026-09-09-apogee-difficulty-structure/ablation-before.txt
 wc -l .superpowers/sdd/2026-09-09-apogee-difficulty-structure/before.tsv
 ```
 
@@ -1202,8 +1202,8 @@ Claude-Session: https://claude.ai/code/session_018VCA3FTbkfMqByjoKBDp3r"
 
 ```bash
 W=.superpowers/sdd/2026-09-09-apogee-difficulty-structure
-SOLVE=1 pnpm --filter @apogee/engine exec vitest run level-stats 2>&1 | grep -E $'^(id|[0-9]+-[0-9]+)\t' > $W/after.tsv
-SOLVE=1 pnpm --filter @apogee/engine exec vitest run ablation-audit 2>&1 | grep -E '^[0-9]+-[0-9]+' > $W/ablation-after.txt
+SOLVE=1 pnpm --filter @apogee/engine exec vitest run level-stats 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E $'^(id|[0-9]+-[0-9]+)\t' > $W/after.tsv
+SOLVE=1 pnpm --filter @apogee/engine exec vitest run ablation-audit 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep -E '^[0-9]+-[0-9]+' > $W/ablation-after.txt
 grep -c "in band" $W/after.tsv; grep -v "in band" $W/after.tsv | tail -n +2
 grep -vc "mechanic required\|audit n/a" $W/ablation-after.txt
 ```
