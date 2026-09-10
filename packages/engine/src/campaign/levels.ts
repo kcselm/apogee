@@ -305,10 +305,16 @@ export const LEVELS: Level[] = [
   // orbit — at least 12u clear of every blocker disc.
   {
     id: "8-1", name: "Through the Door",
-    // Gate: the planet-and-two-guards wall makes (1520,272) ballistically unreachable.
+    // Gate: the planet-and-two-guards wall makes the top-right corner ballistically
+    // unreachable.
     bodies: [planet(700, 500, 96), blocker(700, 200, 140), blocker(700, 800, 140)],
-    keys: [], goal: { pos: { x: 1520, y: 272 }, radius: 40 }, targets: [],
-    portals: [makePortal(400, 500, 32, 180, 1), makePortal(1380, 272, 32, 0, 0)],
+    // The ring is held 52u ABOVE the exit line and 180u past the mouth, so the beam
+    // out of the door arrives off-centre and fanned. On the exit line at (1520,272)
+    // the door aimed itself: 97 % of clears banked a bullseye.
+    keys: [], goal: { pos: { x: 1560, y: 220 }, radius: 32 }, targets: [],
+    // Entry mouth off the pad line (y 380, not 500): a straight max-power shot no
+    // longer falls into it, and the spread of entry angles fans the exit beam.
+    portals: [makePortal(400, 380, 26, 180, 1), makePortal(1380, 272, 32, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 4,
     objectives: [{ kind: "reach-goal" }], par: 1,
     intro: "Wormholes: enter one mouth, leave the other, heading the way it faces.",
@@ -316,7 +322,11 @@ export const LEVELS: Level[] = [
   {
     id: "8-2", name: "Bent Passage",
     bodies: [planet(700, 340, 150), planet(700, 660, 150)],
-    keys: [], goal: { pos: { x: 1488, y: 112 }, radius: 38 }, targets: [],
+    // Both worlds sit below the exit line, so the beam out of the door sags as it
+    // crosses the gap. The ring is lifted ABOVE that sag (y 40, not 112): only the
+    // slice of the fan still climbing at x=1500 arrives, which is what took the
+    // twist band from 3.73 % to 1.55 %.
+    keys: [], goal: { pos: { x: 1500, y: 40 }, radius: 34 }, targets: [],
     // Entry mouth sits below the pad line, at (520, 800) facing 200: gravity
     // has to bend the shot down into it — it is not reachable on a straight line.
     portals: [makePortal(520, 800, 30, 200, 1), makePortal(1380, 112, 30, 0, 0)],
@@ -327,7 +337,12 @@ export const LEVELS: Level[] = [
     id: "8-3", name: "Redirect",
     // Wall with 50u seams (12u clearance = 2 × PROBE_RADIUS + 2); the portal turns the shot ~70 deg down into the pocket.
     bodies: [blocker(700, 150, 150), planet(700, 500, 150), blocker(700, 850, 150)],
-    keys: [], goal: { pos: { x: 1520, y: 944 }, radius: 38 }, targets: [],
+    // The ring is off the exit beam, 40u left and 24u short of where it used to sit
+    // directly under the mouth. Mouth radius is NOT the lever here: the exit is only
+    // 77u above the old ring, so the whole fan landed in it whatever the entry —
+    // r22 still measured 6.97 %. Sliding the ring out of the fall line is what takes
+    // it to the test band.
+    keys: [], goal: { pos: { x: 1480, y: 910 }, radius: 38 }, targets: [],
     portals: [makePortal(420, 620, 30, 200, 1), makePortal(1520, 830, 30, 90, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
@@ -340,7 +355,11 @@ export const LEVELS: Level[] = [
     // the top-right corner, so the door is the only way there. Do not shrink it.
     bodies: [planet(700, 500, 200)],
     keys: [{ pos: { x: 280, y: 590 }, radius: 26 }],
-    goal: { pos: { x: 1552, y: 80 }, radius: 36 }, targets: [],
+    // Lifted 40u off the exit beam, which sags under the r200 planet: at (1552,80)
+    // the ring sat on the beam's own line and 44 % of clears banked a bullseye.
+    // Forgiveness is untouched (the corridor out of the mouth crosses either ring
+    // at the same rate) — only the offset moves 3★.
+    goal: { pos: { x: 1560, y: 40 }, radius: 36 }, targets: [],
     portals: [makePortal(430, 640, 30, 200, 1), makePortal(1440, 80, 30, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
@@ -354,10 +373,14 @@ export const LEVELS: Level[] = [
     // shadow.
     bodies: [blocker(760, 170, 170), blocker(760, 500, 170), blocker(760, 830, 170), planet(400, 850, 90)],
     keys: [], goal: undefined,
-    targets: [{ pos: { x: 1424, y: 368 }, radius: 26 }, { pos: { x: 1424, y: 624 }, radius: 26 }],
+    // Both exits pulled 150u back to x=1150 and neither mark left on its exit line:
+    // at x=1300 each mouth stood 124u in front of its mark and the pair caught a
+    // fifth of the whole grid. The extra travel fans each beam, and the marks now
+    // sit off to the side of where their own beam lands.
+    targets: [{ pos: { x: 1360, y: 300 }, radius: 22 }, { pos: { x: 1560, y: 900 }, radius: 30 }],
     portals: [
-      makePortal(400, 400, 30, 180, 1), makePortal(1300, 368, 30, 0, 0),
-      makePortal(400, 600, 30, 180, 3), makePortal(1300, 624, 30, 0, 2),
+      makePortal(400, 400, 30, 180, 1), makePortal(1150, 368, 30, 0, 0),
+      makePortal(400, 600, 30, 180, 3), makePortal(1150, 624, 30, 0, 2),
     ],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "hit-all-targets" }], par: 2,
@@ -366,8 +389,13 @@ export const LEVELS: Level[] = [
     id: "9-3", name: "Gauntlet Gate",
     // All-blocker gauntlet, r180 so the discs overlap and leave no threadable seam.
     bodies: [blocker(640, 180, 180), blocker(640, 500, 180), blocker(640, 820, 180)],
-    keys: [], goal: { pos: { x: 1296, y: 496 }, radius: 36 }, targets: [],
-    portals: [makePortal(400, 380, 28, 160, 1), makePortal(1200, 496, 28, 0, 0)],
+    // Exit pulled 200u back to x=1000 and the ring dropped onto where the beam has
+    // fallen by x=1310. At the old (1200,496) the ring sat 59u in front of the mouth,
+    // so every probe that came through the door landed in it and no ring ANYWHERE on
+    // the board measured inside the test band; the extra 300u of travel is what lets
+    // the blockers' pull fan and drop the beam.
+    keys: [], goal: { pos: { x: 1310, y: 710 }, radius: 40 }, targets: [],
+    portals: [makePortal(400, 380, 28, 160, 1), makePortal(1000, 496, 28, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 5,
     objectives: [{ kind: "reach-goal" }], par: 1,
   },
@@ -376,15 +404,21 @@ export const LEVELS: Level[] = [
   {
     id: "10-1", name: "Convergence",
     // Both mechanics are load-bearing (audit runs one twin per mechanic): the wall
-    // makes the door necessary, and both marks sit past the probe's coasting range
-    // out of the exit, so only the moon's slingshot reaches them. par 1 -> 2.
+    // makes the door necessary, and the FAR mark sits past the probe's coasting range
+    // out of the exit, so only the moon's slingshot reaches it — that one mark is what
+    // the moons-ablated twin cannot do. par 1 -> 2.
     bodies: [
       blocker(620, 170, 170), blocker(620, 500, 170), blocker(620, 830, 170),
       planet(1250, 700, 70), moon(1250, 700, 55, 190, 0, 1),
     ],
+    // Both marks grown 26 -> 30 and the entry mouth 28 -> 34: the capstone was the
+    // stingiest level in the chapter (1.66 %, under the teach floor). The near mark
+    // is never bullseyed at all (no grid launch passes within 14u of it), so the
+    // reference's first launch cannot bank precision the way 4-1's did; growing the
+    // far mark is what pulls its own bullseye share off the 3★ cap.
     keys: [], goal: undefined,
-    targets: [{ pos: { x: 1296, y: 432 }, radius: 26 }, { pos: { x: 1520, y: 688 }, radius: 26 }],
-    portals: [makePortal(400, 420, 28, 165, 1), makePortal(1100, 440, 28, 0, 0)],
+    targets: [{ pos: { x: 1296, y: 432 }, radius: 30 }, { pos: { x: 1520, y: 688 }, radius: 30 }],
+    portals: [makePortal(400, 420, 34, 165, 1), makePortal(1100, 440, 28, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
     objectives: [{ kind: "hit-all-targets" }], par: 2,
     intro: "Capstone. Moons, wormholes, and everything before them.",
@@ -397,7 +431,12 @@ export const LEVELS: Level[] = [
       blocker(700, 170, 170), blocker(700, 500, 170), blocker(700, 830, 170),
       planet(1300, 300, 70), moon(1300, 300, 55, 190, 0, 1),
     ],
-    keys: [{ pos: { x: 380, y: 300 }, radius: 26 }],
+    // `progress` on this level IS the key's reach: the goal is locked until the key
+    // is in hand, so no launch can raise progress any other way. Every pad-side
+    // placement measured 2.4-5.8 % (the launch fan sprays over the whole pad side),
+    // so the key moves past the wall's top corner — a lob over the guard — where
+    // 1.15 % of the grid finds it.
+    keys: [{ pos: { x: 920, y: 120 }, radius: 36 }],
     goal: { pos: { x: 1488, y: 80 }, radius: 36 }, targets: [],
     portals: [makePortal(420, 620, 28, 195, 1), makePortal(1150, 560, 28, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 6,
@@ -411,9 +450,14 @@ export const LEVELS: Level[] = [
       blocker(660, 170, 170), blocker(660, 500, 170), blocker(660, 830, 170),
       planet(1280, 720, 80), moon(1280, 720, 60, 190, 0, -1),
     ],
-    keys: [{ pos: { x: 300, y: 200 }, radius: 26 }],
+    // Same union rule as 10-2, with three sensors instead of two: `progress` is the
+    // key plus the mark (the goal is locked behind the key). The key goes to the
+    // corner above the pad, which only a near-vertical lob at one power threads
+    // (0.15 %), and the mark to the far edge above the moon (0.14 %); the ring stays
+    // where it was, in the moon's throw, at 0.13 %.
+    keys: [{ pos: { x: 140, y: 60 }, radius: 30 }],
     goal: { pos: { x: 1520, y: 880 }, radius: 36 },
-    targets: [{ pos: { x: 1296, y: 432 }, radius: 24 }],
+    targets: [{ pos: { x: 1560, y: 460 }, radius: 30 }],
     portals: [makePortal(430, 380, 26, 165, 1), makePortal(1120, 440, 26, 0, 0)],
     launchPos: { ...LAUNCH }, bounds: BOUNDS, launchBudget: 7,
     objectives: [{ kind: "hit-all-targets" }, { kind: "reach-goal" }], par: 3,
