@@ -60,6 +60,8 @@ candidate grid (360 directions × 12 powers; × 8 board ticks on moving levels).
 | `max steps` | longest flight of any grid input (2700 = 45 s orbit is reachable by accident) |
 | `ref input` | the reference sequence as JSON, for pasting into `SOLUTIONS` |
 
+Power axis: 40 … 260 in steps of 20; 220/240/260 are speed-clamped duplicates of 200 (`MAX_SPEED / POWER_SCALE`), so full-pull shots weigh ×4 — the axis the 2026-09-01 sweep and these bands were calibrated on.
+
 Runtime today is about three minutes for all thirty levels; acceptable for an authoring tool.
 Command:
 
@@ -172,7 +174,7 @@ Portrait: header spans the width; tiles wrap two-per-row as today.
 
 ## Section 7 — Tuning record
 
-### Before (2026-09-09, level-stats @ 92e4104)
+### Before (2026-09-09, level-stats @ 92e4104, levels @ b87d0d3)
 
 Fine grid 360 × 12 (× 8 ticks on moving levels); forgiveness = clear1 % (par 1) or progress % (par 2+); 3★ % among par clears; ref = shortest-playback clearing sequence within par.
 
@@ -209,7 +211,9 @@ Fine grid 360 × 12 (× 8 ticks on moving levels); forgiveness = clear1 % (par 1
 | 10-2 Clockwork Lock | 2 | twist | 6.04 | 31.32 | 125 | 260 | forgiveness above twist band (6.04 % > 2.00 %) |
 | 10-3 Event Horizon | 3 | test | 6.44 | 28.57 | 141 | 261 | forgiveness above test band (6.44 % > 0.70 %) |
 
-### After (2026-09-10, level-stats @ 92e4104)
+### After (2026-09-10, level-stats @ 92e4104, levels @ 5964a00)
+
+_Provisional until the Task 12 playtest notes land; data-only amendments only._
 
 Same grid and columns as "before". 30 / 30 rows in band; every chapter ramps teach > twist > test; longest reference 389 steps (6.5 s); every ablation twin `mechanic required`.
 
@@ -235,16 +239,16 @@ Same grid and columns as "before". 30 / 30 rows in band; every chapter ramps tea
 | 6-3 Twin Moons | 1 | test | 0.62 | 30.05 | 135 | 2700 | in band |
 | 7-1 Moon & Guard | 1 | teach | 2.30 | 27.46 | 81 | 1900 | in band |
 | 7-2 Keyed Orbit | 1 | twist | 1.00 | 29.86 | 103 | 2700 | in band |
-| 7-3 Moving Marks | 1 | test | 0.42 | 31.94 | 76 | 1557 | in band |
+| 7-3 Moving Marks | 1 | test | 0.35 | 35.00 | 136 | 1557 | in band |
 | 8-1 Through the Door | 1 | teach | 5.63 | 23.87 | 34 | 2700 | in band |
 | 8-2 Bent Passage | 1 | twist | 1.55 | 23.88 | 77 | 2700 | in band |
 | 8-3 Redirect | 1 | test | 0.28 | 33.33 | 29 | 435 | in band |
 | 9-1 Portal Key | 1 | teach | 4.28 | 17.84 | 32 | 2700 | in band |
 | 9-2 Split Marks | 2 | twist | 1.60 | 23.68 | 227 | 343 | in band |
 | 9-3 Gauntlet Gate | 1 | test | 0.53 | 26.09 | 165 | 330 | in band |
-| 10-1 Convergence | 2 | teach | 3.27 | 32.34 | 77 | 280 | in band |
+| 10-1 Convergence | 2 | teach | 2.38 | 25.10 | 113 | 280 | in band |
 | 10-2 Clockwork Lock | 2 | twist | 1.14 | 31.32 | 233 | 260 | in band |
-| 10-3 Event Horizon | 3 | test | 0.27 | 21.74 | 247 | 261 | in band |
+| 10-3 Event Horizon | 3 | test | 0.27 | 23.21 | 246 | 261 | in band |
 
 **Exceptions:** None.
 

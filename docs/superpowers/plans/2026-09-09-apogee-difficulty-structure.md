@@ -34,6 +34,7 @@
 3. **The sweep's power axis is 40 … 260 in steps of 20, matching the 2026-09-01 sweep the spec's bands were calibrated on.** `MAX_SPEED / POWER_SCALE = 200`, so 220/240/260 are speed-clamped duplicates of 200 (max-power shots weigh ×4). A 20–200 axis was measured at plan-execution time and reads about half as forgiving (1-1: 1.53 % vs the spec's 3.03 %; 40–260 gives 3.17 %), which would mis-tune every "keep" row. Comparability with the spec's table and bands wins; the duplication is documented in the tool.
 4. **The reference search is progress-pruned, like the solvers.** Shortest-playback search over par launches keeps, per progress signature, only the three shortest-playback prefixes. It can miss a clear that needs a non-progress launch (parking a probe as a blocker); the fun-debt solvers have the same blind spot and the spec calls the sweep an authoring tool, not a proof.
 5. **`level-stats` gets a `LEVELS` filter, and so does the ablation audit.** The full sweep takes minutes; a per-level tuning loop needs a per-level run. `LEVELS=3-1,3-2` restricts both tools. Tool-only change, SOLVE-gated, never CI.
+6. **The tuning record's "after" table is committed before the playtest** (spec decision 7 / §5 steps 5–6 order it the other way). The table is data the playtest reads; Task 12's notes amend it with data-only commits. Marked provisional in §7 until then.
 
 ## Dependencies on Kevin
 
